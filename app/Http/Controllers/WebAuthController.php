@@ -14,7 +14,7 @@ class WebAuthController extends Controller
         if (Auth::check()) {
             return $this->redirectBasedOnRole(Auth::user()->role);
         }
-        return view('auth.login');
+        return \Inertia\Inertia::render('Auth/Login');
     }
 
     public function login(Request $request)
@@ -50,28 +50,28 @@ class WebAuthController extends Controller
 
     private function redirectBasedOnRole($role)
     {
-        if ($role === 'super_admin') {
+        if ($role === 'super-admin') {
             return redirect()->route('super_admin.dashboard');
-        } elseif ($role === 'admin_sekolah') {
-            return redirect()->route('admin_sekolah.dashboard');
-        } elseif ($role === 'guru') {
-            return redirect()->route('guru.dashboard');
-        } elseif ($role === 'siswa') {
-            return redirect()->route('siswa.dashboard');
-        } elseif ($role === 'guru_bk') {
-            return redirect()->route('guru_bk.dashboard');
-        } elseif ($role === 'keuangan') {
-            return redirect()->route('keuangan.dashboard');
-        } elseif ($role === 'jurusan') {
-            return redirect()->route('jurusan.dashboard');
-        } elseif ($role === 'akademik') {
-            return redirect()->route('akademik.dashboard');
-        } elseif ($role === 'perpustakawan') {
-            return redirect()->route('perpustakawan.dashboard');
-        } elseif ($role === 'bkk') {
-            return redirect()->route('bkk.dashboard');
-        } elseif ($role === 'ppdb') {
-            return redirect()->route('ppdb.dashboard');
+        } elseif ($role === 'school-admin') {
+            return redirect()->route('school-admin.dashboard');
+        } elseif ($role === 'teacher') {
+            return redirect()->route('teacher.dashboard');
+        } elseif ($role === 'student') {
+            return redirect()->route('student.dashboard');
+        } elseif ($role === 'guidance') {
+            return redirect()->route('guidance.dashboard');
+        } elseif ($role === 'finance') {
+            return redirect()->route('finance.dashboard');
+        } elseif ($role === 'department') {
+            return redirect()->route('department.dashboard');
+        } elseif ($role === 'academic') {
+            return redirect()->route('academic.dashboard');
+        } elseif ($role === 'librarian') {
+            return redirect()->route('librarian.dashboard');
+        } elseif ($role === 'career') {
+            return redirect()->route('career.dashboard');
+        } elseif ($role === 'admission') {
+            return redirect()->route('admission.dashboard');
         } else {
             Auth::logout();
             return redirect('/login')->with('error', 'Role tidak dikenali.');

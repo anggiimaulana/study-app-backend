@@ -18,8 +18,8 @@ class AcademicSeeder extends Seeder
     public function run(): void
     {
         $school = School::first();
-        $guruUser = User::where('role', 'guru')->first();
-        $siswaUser = User::where('role', 'siswa')->first();
+        $guruUser = User::where('role', 'teacher')->first();
+        $siswaUser = User::where('role', 'student')->first();
 
         $year = AcademicYear::create([
             'school_id' => $school->id,
