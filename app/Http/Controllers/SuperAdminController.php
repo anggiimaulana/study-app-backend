@@ -18,13 +18,18 @@ class SuperAdminController extends Controller
             'total_complaints' => Complaint::count(),
         ];
         $schools = School::withCount('students')->get();
-        return view('dashboards.super_admin', compact('stats', 'schools'));
+        return \Inertia\Inertia::render('SuperAdmin/Dashboard', ['stats' => $stats, 'schools' => $schools]);
     }
 
-    public function schools() { return view('dashboards.super_admin_pages.schools'); }
-    public function billing() { return view('dashboards.super_admin_pages.billing'); }
-    public function monitoring() { return view('dashboards.super_admin_pages.monitoring'); }
-    public function settings() { return view('dashboards.super_admin_pages.settings'); }
+    public function schools() 
+    { 
+        $schools = \App\Models\School::withCount(['students', 'teachers'])->latest()->paginate(10);
+        return \Inertia\Inertia::render('SuperAdmin/Schools', ['schools' => $schools]); 
+    }
+    
+    public function billing() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Billing & SaaS', 'role' => 'super-admin']); }
+    public function monitoring() { return \Inertia\Inertia::render('GenericPage', ['title' => 'System Monitoring', 'role' => 'super-admin']); }
+    public function settings() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Platform Settings', 'role' => 'super-admin']); }
 
 
 }

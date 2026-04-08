@@ -33,4 +33,8 @@ class Task extends Model
         return $this->belongsTo(Subject::class, 'subject_id');
     }
 
+    public function submissions()
+    {
+        return $this->hasMany(TaskSubmission::class, 'task_id');
+    }
 }

@@ -25,28 +25,28 @@ class SchoolAndUserSeeder extends Seeder
             'name' => 'Super Administrator',
             'email' => 'superadmin@lmn.id',
             'password' => Hash::make('password'),
-            'role' => 'super_admin'
+            'role' => 'super-admin'
         ]);
 
         $school->users()->create([
             'name' => 'Admin Sekolah',
             'email' => 'admin@smk.id',
             'password' => Hash::make('password'),
-            'role' => 'admin_sekolah'
+            'role' => 'school-admin'
         ]);
 
         $school->users()->create([
             'name' => 'Budi Guru RPL',
             'email' => 'guru@smk.id',
             'password' => Hash::make('password'),
-            'role' => 'guru'
+            'role' => 'teacher'
         ]);
 
         $school->users()->create([
             'name' => 'Siswa Teladan',
             'email' => 'siswa@smk.id',
             'password' => Hash::make('password'),
-            'role' => 'siswa'
+            'role' => 'student'
         ]);
     }
 }
