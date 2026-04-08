@@ -1,0 +1,302 @@
+{
+	"info": {
+		"_postman_id": "ab123456-cd78-90ef-12ab-34567890cdef",
+		"name": "SMK Study App API",
+		"description": "Koleksi API Endpoint lengkap untuk aplikasi Mobile LMN SMK (Flutter). Dibuat secara auto-generated berdasarkan arsitektur Laravel Backend.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Login (Generate Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if(jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"siswa@smk.id\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout (Sesi berakhir)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Ruang Kelas (Tasks)",
+			"item": [
+				{
+					"name": "Get All Tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Task (Khusus Guru)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"school_id\": 1,\n    \"classroom_id\": 1,\n    \"subject_id\": 1,\n    \"title\": \"Membuat Sistem Login\",\n    \"description\": \"Tugas dikumpulkan di git.\",\n    \"type\": \"tugas\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Konseling & Ruang Aman (Myfess)",
+			"item": [
+				{
+					"name": "Get Timeline Myfess",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{base_url}}/myfess?page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"myfess"
+							],
+							"query": [
+								{ "key": "page", "value": "1" }
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Posting Cerita Anonim",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"school_id\": 1,\n    \"title\": \"Overthinking soal masa depan\",\n    \"content\": \"Akhir-akhir ini kepikiran jurusan kuliah...\",\n    \"is_anonymous\": true,\n    \"tags\": [\"karir\", \"bingung\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/myfess",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"myfess"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Absensi (QR)",
+			"item": [
+				{
+					"name": "Submit QR Code Absen",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"eyJpdiI6IkhBcHlKblpM...\",\n    \"schedule_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/attendances",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attendances"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. CBT (Ujian)",
+			"item": [
+				{
+					"name": "Get Soal Random",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{base_url}}/cbt/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cbt",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
