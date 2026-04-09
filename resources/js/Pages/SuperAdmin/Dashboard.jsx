@@ -3,27 +3,6 @@ import { Head } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 
 export default function Dashboard() {
-    const sidebarItems = [
-        {
-            label: 'Dashboard Overview',
-            route: 'super_admin.dashboard',
-            icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            )
-        },
-        {
-            label: 'Manage Schools',
-            route: 'super_admin.schools',
-            icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-            )
-        },
-    ];
-
     const stats = [
         { label: 'Active Schools', value: '1,248', trend: '+12%', color: 'from-blue-500 to-blue-600' },
         { label: 'Total Users', value: '84.5K', trend: '+5.2%', color: 'from-emerald-500 to-emerald-600' },
@@ -32,7 +11,7 @@ export default function Dashboard() {
     ];
 
     return (
-        <DashboardLayout userRole="Super Admin" sidebarItems={sidebarItems} headerTitle="Dashboard Overview">
+        <DashboardLayout userRole="Super Admin" headerTitle="Dashboard Overview">
             <Head title="Super Admin Dashboard" />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2">

@@ -23,18 +23,7 @@ export default function GenericPage({ title, role }) {
         <DashboardLayout userRole={`Portal ${displayRole}`} sidebarItems={[]} headerTitle={title}>
             <Head title={title} />
             
-            <div className="bg-white rounded-3xl p-8 mb-8 border border-slate-100 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-                 <div className="relative z-10 w-full flex justify-between items-center">
-                    <div>
-                        <Link href={route(`${role}.dashboard`)} className="text-sm font-bold text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                            Kembali ke Dashboard Utama
-                        </Link>
-                        <h2 className="text-3xl font-bold font-outfit text-slate-800 mb-2">{title}</h2>
-                        <p className="text-slate-500">Anda berada di ruang modul {title}. Modul dinamis ini masih dalam tahap scaffolding.</p>
-                    </div>
-                </div>
-            </div>
+
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center justify-center text-center">
                 <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
