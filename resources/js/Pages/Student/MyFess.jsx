@@ -1,1402 +1,363 @@
-import React, { useMemo, useState } from "react";
-import { Head, usePage } from "@inertiajs/react";
-import DashboardLayout from "@/Layouts/DashboardLayout";
+import React, { useMemo, useState } from 'react';
+import { Head, usePage } from '@inertiajs/react';
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import Modal from '@/Components/ui/Modal';
 
-const moodOptions = [
-    {
-        id: "excellent",
-        label: "Sangat Baik",
-        hint: "Kondisi stabil dan siap beraktivitas.",
-    },
-    {
-        id: "good",
-        label: "Baik",
-        hint: "Perasaan cukup positif sepanjang hari.",
-    },
-    {
-        id: "neutral",
-        label: "Biasa",
-        hint: "Kondisi netral, tidak naik dan tidak turun.",
-    },
-    { id: "poor", label: "Kurang Baik", hint: "Ada beban yang cukup terasa." },
-    { id: "bad", label: "Buruk", hint: "Membutuhkan dukungan lanjutan." },
+// ─── Constants ──────────────────────────────────────────────────────
+const EMOTIONS = [
+    { id: 'sangat_baik', label: 'Sangat Baik', color: '#10b981', bg: '#ecfdf5', border: '#a7f3d0', icon: '😊' },
+    { id: 'baik', label: 'Baik', color: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe', icon: '🙂' },
+    { id: 'cukup', label: 'Cukup', color: '#f59e0b', bg: '#fffbeb', border: '#fde68a', icon: '😐' },
+    { id: 'kurang_baik', label: 'Kurang Baik', color: '#f97316', bg: '#fff7ed', border: '#fed7aa', icon: '😟' },
+    { id: 'buruk', label: 'Buruk', color: '#ef4444', bg: '#fef2f2', border: '#fecaca', icon: '😢' },
 ];
 
-const conditionAxes = [
-    {
-        key: "energy",
-        label: "Energi",
-        description: "Daya tahan untuk menjalani aktivitas harian.",
-    },
-    {
-        key: "focus",
-        label: "Fokus",
-        description: "Kemampuan berkonsentrasi saat belajar.",
-    },
-    {
-        key: "stress",
-        label: "Stres",
-        description: "Tekanan yang sedang dirasakan.",
-    },
-    {
-        key: "sleep",
-        label: "Tidur",
-        description: "Kualitas istirahat yang didapat semalam.",
-    },
-    {
-        key: "social",
-        label: "Sosial",
-        description: "Kenyamanan berinteraksi dengan orang lain.",
-    },
-];
+const COUNSELING_REASONS = ['Masalah akademik', 'Hubungan sosial', 'Tekanan keluarga', 'Kondisi emosi', 'Perundungan (bullying)', 'Konsultasi karier', 'Lainnya'];
 
-const triggerOptions = [
-    "Kurang tidur",
-    "Banyak tugas",
-    "Masalah sosial",
-    "Keluarga",
-    "Kesehatan",
-    "Tekanan akademik",
-    "Perubahan suasana hati",
-];
+const fmtDate = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+const fmtDateTime = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
 
-const forumTagOptions = [
-    "Akademik",
-    "Sosial",
-    "Keluarga",
-    "Kesehatan",
-    "Motivasi",
-    "Lainnya",
-];
-
-const counselingReasons = [
-    "Masalah akademik",
-    "Hubungan sosial",
-    "Tekanan keluarga",
-    "Kondisi emosi",
-    "Perundungan",
-    "Konsultasi pribadi",
-    "Lainnya",
-];
-
-const formatDateTime = (value) => {
-    if (!value) return "-";
-
-    return new Intl.DateTimeFormat("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(new Date(value));
+const statusStyles = {
+    'Menunggu konfirmasi': { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400', border: 'border-amber-100' },
+    'Disetujui': { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500', border: 'border-green-100' },
+    'Ditolak': { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', border: 'border-red-100' },
+    'Selesai': { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500', border: 'border-blue-100' },
 };
 
-const avatarUrl = (name) =>
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "Siswa")}&background=2563eb&color=ffffff&bold=true`;
-
-const initials = (name = "S") =>
-    name
-        .split(" ")
-        .map((part) => part[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-
-const normalizePosts = (source) => {
-    const items = Array.isArray(source) ? source : (source?.data ?? []);
-
-    return items.map((post) => {
-        const authorName = post.is_anonymous
-            ? "Anonim"
-            : post.student?.user?.name || post.user?.name || "Siswa";
-
-        return {
-            id: post.id,
-            content: post.content || post.title || "",
-            authorName,
-            avatar: post.is_anonymous
-                ? null
-                : post.student?.user?.avatar_url ||
-                  post.student?.user?.photo_url ||
-                  avatarUrl(authorName),
-            isAnonymous: Boolean(post.is_anonymous),
-            createdAt: post.created_at,
-            tags: Array.isArray(post.tags)
-                ? post.tags
-                : typeof post.tags === "string"
-                  ? post.tags
-                        .split(",")
-                        .map((tag) => tag.trim())
-                        .filter(Boolean)
-                  : ["Akademik"],
-            reactions: {
-                like: post.likes_count ?? post.likes?.length ?? 0,
-                support: post.loves_count ?? 0,
-            },
-            comments: Array.isArray(post.comments)
-                ? post.comments.map((comment) => ({
-                      id: comment.id,
-                      authorName: comment.user?.name || "Pengguna",
-                      content: comment.content,
-                      createdAt: comment.created_at,
-                  }))
-                : [],
-        };
-    });
-};
-
-const CheckinTab = ({ onSuccess }) => {
-    const [mood, setMood] = useState("good");
-    const [conditions, setConditions] = useState({
-        energy: 4,
-        focus: 4,
-        stress: 2,
-        sleep: 3,
-        social: 4,
-    });
-    const [triggers, setTriggers] = useState(["Kurang tidur"]);
-    const [story, setStory] = useState("");
-
-    const summary = useMemo(() => {
-        const score =
-            Object.values(conditions).reduce(
-                (total, value) => total + value,
-                0,
-            ) / Object.keys(conditions).length;
-        const moodLabel =
-            moodOptions.find((item) => item.id === mood)?.label || "Baik";
-
-        return {
-            score: score.toFixed(1),
-            moodLabel,
-        };
-    }, [conditions, mood]);
-
-    const toggleTrigger = (trigger) => {
-        setTriggers((current) =>
-            current.includes(trigger)
-                ? current.filter((item) => item !== trigger)
-                : [...current, trigger],
-        );
-    };
-
-    const submitCheckin = (event) => {
-        event.preventDefault();
-
-        onSuccess({
-            title: "Check-in tersimpan",
-            message: "Data check-in harian sudah berhasil dikirim.",
-            summary: [
-                `Mood: ${summary.moodLabel}`,
-                `Skor rata-rata: ${summary.score}/5`,
-                `Pemicu: ${triggers.join(", ") || "Tidak ada"}`,
-            ],
-        });
-    };
-
+const StatusBadge = ({ status }) => {
+    const s = statusStyles[status] || statusStyles['Menunggu konfirmasi'];
     return (
-        <form onSubmit={submitCheckin} className="space-y-4">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    Section 1
-                </p>
-                <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                    Mood Hari Ini
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                    Pilih suasana hati yang paling mendekati kondisimu saat ini.
-                </p>
-
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {moodOptions.map((item) => {
-                        const active = mood === item.id;
-
-                        return (
-                            <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => setMood(item.id)}
-                                className={`text-left rounded-xl border px-4 py-3 transition-colors ${active ? "bg-blue-600 border-blue-600 text-white" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-white"}`}
-                            >
-                                <p className="text-sm font-bold">
-                                    {item.label}
-                                </p>
-                                <p
-                                    className={`mt-1 text-xs ${active ? "text-blue-100" : "text-slate-500"}`}
-                                >
-                                    {item.hint}
-                                </p>
-                            </button>
-                        );
-                    })}
-                </div>
-            </section>
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    Section 2
-                </p>
-                <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                    Kondisi Saat Ini
-                </h3>
-
-                <div className="mt-4 space-y-3">
-                    {conditionAxes.map((axis) => (
-                        <div
-                            key={axis.key}
-                            className="rounded-xl border border-slate-100 bg-slate-50/70 p-3"
-                        >
-                            <div className="flex items-center justify-between gap-3 mb-2">
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">
-                                        {axis.label}
-                                    </p>
-                                    <p className="text-xs text-slate-500">
-                                        {axis.description}
-                                    </p>
-                                </div>
-                                <span className="text-xs font-black text-blue-600">
-                                    {conditions[axis.key]}
-                                </span>
-                            </div>
-                            <input
-                                type="range"
-                                min="1"
-                                max="5"
-                                value={conditions[axis.key]}
-                                onChange={(event) =>
-                                    setConditions((current) => ({
-                                        ...current,
-                                        [axis.key]: Number(event.target.value),
-                                    }))
-                                }
-                                className="w-full accent-blue-600"
-                            />
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    Section 3
-                </p>
-                <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                    Apa yang Kamu Alami
-                </h3>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                    {triggerOptions.map((trigger) => {
-                        const active = triggers.includes(trigger);
-
-                        return (
-                            <button
-                                key={trigger}
-                                type="button"
-                                onClick={() => toggleTrigger(trigger)}
-                                className={`rounded-full px-3 py-1.5 text-xs font-bold border transition-colors ${active ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-white"}`}
-                            >
-                                {trigger}
-                            </button>
-                        );
-                    })}
-                </div>
-            </section>
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    Section 4
-                </p>
-                <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                    Ceritakan Kondisimu
-                </h3>
-                <textarea
-                    value={story}
-                    onChange={(event) => setStory(event.target.value)}
-                    placeholder="Tulis cerita singkat untuk melengkapi check-in harian..."
-                    className="mt-4 w-full min-h-32 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-800 outline-none focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100 resize-none"
-                />
-
-                <div className="mt-4 flex items-center justify-between gap-3">
-                    <p className="text-xs text-slate-500">
-                        Ringkasan:{" "}
-                        <span className="font-bold text-slate-700">
-                            {summary.moodLabel}
-                        </span>{" "}
-                        · {summary.score}/5
-                    </p>
-                    <button
-                        type="submit"
-                        className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-white"
-                    >
-                        Kirim Check-in
-                    </button>
-                </div>
-            </section>
-        </form>
+        <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${s.bg} ${s.text} border ${s.border}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />{status}
+        </span>
     );
 };
 
-const ForumTab = ({ initialPosts, onSuccess }) => {
+// ─── Main ───────────────────────────────────────────────────────────
+export default function MyFess() {
     const { auth } = usePage().props;
-    const [posts, setPosts] = useState(initialPosts);
-    const [composerOpen, setComposerOpen] = useState(false);
-    const [selectedPost, setSelectedPost] = useState(null);
-    const [commentDraft, setCommentDraft] = useState("");
-    const [draft, setDraft] = useState({
-        content: "",
-        tags: ["Akademik"],
-        isAnonymous: true,
-    });
+    const [activeTab, setActiveTab] = useState('checkin');
 
-    const selectedComments = selectedPost
-        ? posts.find((post) => post.id === selectedPost.id)?.comments || []
-        : [];
-
-    const toggleReaction = (postId, type) => {
-        setPosts((current) =>
-            current.map((post) => {
-                if (post.id !== postId) return post;
-
-                return {
-                    ...post,
-                    reactions: {
-                        ...post.reactions,
-                        [type]: post.reactions[type] + 1,
-                    },
-                };
-            }),
-        );
-    };
-
-    const toggleTag = (tag) => {
-        setDraft((current) => ({
-            ...current,
-            tags: current.tags.includes(tag)
-                ? current.tags.filter((item) => item !== tag)
-                : [...current.tags, tag],
-        }));
-    };
-
-    const createPost = () => {
-        if (!draft.content.trim() || draft.tags.length === 0) return;
-
-        const authorName = draft.isAnonymous
-            ? "Anonim"
-            : auth?.user?.name || "Siswa";
-        const newPost = {
-            id: Date.now(),
-            content: draft.content.trim(),
-            authorName,
-            avatar: draft.isAnonymous ? null : avatarUrl(authorName),
-            isAnonymous: draft.isAnonymous,
-            createdAt: new Date().toISOString(),
-            tags: draft.tags,
-            reactions: { like: 0, support: 0 },
-            comments: [],
-        };
-
-        setPosts((current) => [newPost, ...current]);
-        setDraft({ content: "", tags: ["Akademik"], isAnonymous: true });
-        setComposerOpen(false);
-
-        onSuccess({
-            title: "Postingan berhasil ditambahkan",
-            message: "Cerita baru sudah tampil di daftar forum.",
-            summary: [
-                `Mode: ${newPost.isAnonymous ? "Anonim" : "Terbuka"}`,
-                `Tag: ${newPost.tags.join(", ")}`,
-            ],
-        });
-    };
-
-    const submitComment = () => {
-        if (!selectedPost || !commentDraft.trim()) return;
-
-        setPosts((current) =>
-            current.map((post) => {
-                if (post.id !== selectedPost.id) return post;
-
-                return {
-                    ...post,
-                    comments: [
-                        ...post.comments,
-                        {
-                            id: Date.now(),
-                            authorName: auth?.user?.name || "Kamu",
-                            content: commentDraft.trim(),
-                            createdAt: new Date().toISOString(),
-                        },
-                    ],
-                };
-            }),
-        );
-
-        setCommentDraft("");
-    };
-
-    return (
-        <div className="space-y-4">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex items-center justify-between gap-4">
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                        Forum Cerita
-                    </p>
-                    <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                        Daftar cerita dan postingan siswa
-                    </h3>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => setComposerOpen(true)}
-                    className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-white"
-                >
-                    Tambah Cerita
-                </button>
-            </section>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {posts.map((post) => (
-                    <article
-                        key={post.id}
-                        className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-4"
-                    >
-                        <div className="flex items-start gap-3">
-                            {post.isAnonymous ? (
-                                <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                    <svg
-                                        className="w-5 h-5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11zm0 2c-3.866 0-7 2.239-7 5v1h14v-1c0-2.761-3.134-5-7-5z"
-                                        />
-                                    </svg>
-                                </div>
-                            ) : (
-                                <img
-                                    src={
-                                        post.avatar ||
-                                        avatarUrl(post.authorName)
-                                    }
-                                    alt={post.authorName}
-                                    className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
-                                />
-                            )}
-
-                            <div className="min-w-0 flex-1">
-                                <p className="text-sm font-black text-slate-900">
-                                    {post.authorName}
-                                </p>
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                    {formatDateTime(post.createdAt)}
-                                </p>
-                            </div>
-                        </div>
-
-                        <p className="text-sm leading-6 text-slate-600">
-                            {post.content}
-                        </p>
-
-                        <div className="flex flex-wrap gap-2">
-                            {post.tags.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-blue-700 border border-blue-100"
-                                >
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-
-                        <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        toggleReaction(post.id, "like")
-                                    }
-                                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600"
-                                >
-                                    <svg
-                                        className="w-3.5 h-3.5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M14 9V5a3 3 0 00-6 0v4M5 9h14l-1 10H6L5 9z"
-                                        />
-                                    </svg>
-                                    {post.reactions.like}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        toggleReaction(post.id, "support")
-                                    }
-                                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600"
-                                >
-                                    <svg
-                                        className="w-3.5 h-3.5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M5 13l4 4L19 7"
-                                        />
-                                    </svg>
-                                    {post.reactions.support}
-                                </button>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setSelectedPost(post)}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-bold text-white"
-                            >
-                                <svg
-                                    className="w-3.5 h-3.5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                    />
-                                </svg>
-                                Komentar ({post.comments.length})
-                            </button>
-                        </div>
-                    </article>
-                ))}
-            </div>
-
-            {composerOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                            <h3 className="text-base font-black text-slate-900 font-outfit">
-                                Buat Postingan
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setComposerOpen(false)}
-                                className="text-slate-400 hover:text-slate-800"
-                            >
-                                <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2.5}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-5 space-y-4">
-                            <textarea
-                                value={draft.content}
-                                onChange={(event) =>
-                                    setDraft((current) => ({
-                                        ...current,
-                                        content: event.target.value,
-                                    }))
-                                }
-                                placeholder="Tulis cerita atau pengalamanmu..."
-                                className="w-full min-h-32 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-800 outline-none focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100 resize-none"
-                            />
-
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">
-                                    Tag
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {forumTagOptions.map((tag) => {
-                                        const selected =
-                                            draft.tags.includes(tag);
-                                        return (
-                                            <button
-                                                key={tag}
-                                                type="button"
-                                                onClick={() => toggleTag(tag)}
-                                                className={`rounded-full px-3 py-1.5 text-xs font-bold border ${selected ? "bg-blue-600 text-white border-blue-600" : "bg-slate-50 text-slate-600 border-slate-200"}`}
-                                            >
-                                                {tag}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">
-                                        Posting anonim
-                                    </p>
-                                    <p className="text-xs text-slate-500">
-                                        Aktifkan untuk menyembunyikan identitas.
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setDraft((current) => ({
-                                            ...current,
-                                            isAnonymous: !current.isAnonymous,
-                                        }))
-                                    }
-                                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${draft.isAnonymous ? "bg-blue-600" : "bg-slate-300"}`}
-                                >
-                                    <span
-                                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${draft.isAnonymous ? "translate-x-6" : "translate-x-1"}`}
-                                    />
-                                </button>
-                            </label>
-
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setComposerOpen(false)}
-                                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={createPost}
-                                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white"
-                                >
-                                    Kirim
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {selectedPost && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[88vh] flex flex-col">
-                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                            <h3 className="text-base font-black text-slate-900 font-outfit">
-                                Komentar Postingan
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setSelectedPost(null)}
-                                className="text-slate-400 hover:text-slate-800"
-                            >
-                                <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2.5}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-5 space-y-4 overflow-y-auto">
-                            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                                <p className="text-sm font-bold text-slate-900">
-                                    {selectedPost.authorName}
-                                </p>
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                    {formatDateTime(selectedPost.createdAt)}
-                                </p>
-                                <p className="mt-2 text-sm text-slate-600 leading-6">
-                                    {selectedPost.content}
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                {selectedComments.length > 0 ? (
-                                    selectedComments.map((comment) => (
-                                        <div
-                                            key={comment.id}
-                                            className="rounded-xl border border-slate-200 bg-white p-3"
-                                        >
-                                            <div className="flex items-center justify-between gap-3">
-                                                <p className="text-sm font-bold text-slate-900">
-                                                    {comment.authorName}
-                                                </p>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                                    {formatDateTime(
-                                                        comment.createdAt,
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <p className="mt-1.5 text-sm text-slate-600 leading-6">
-                                                {comment.content}
-                                            </p>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-center text-sm text-slate-400">
-                                        Belum ada komentar.
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                                <textarea
-                                    value={commentDraft}
-                                    onChange={(event) =>
-                                        setCommentDraft(event.target.value)
-                                    }
-                                    placeholder="Tulis komentar..."
-                                    className="w-full min-h-24 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100 resize-none"
-                                />
-                                <div className="mt-2 flex justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={submitComment}
-                                        className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white"
-                                    >
-                                        Kirim
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const CounselingTab = ({ onSuccess }) => {
-    const [requests, setRequests] = useState([
-        {
-            id: 1,
-            reason: "Tekanan akademik",
-            details: "Saya merasa sulit mengejar tugas yang menumpuk.",
-            preference: "Guru BK",
-            status: "Menunggu konfirmasi siswa",
-            createdAt: "2026-04-08T08:45:00Z",
-        },
-        {
-            id: 2,
-            reason: "Hubungan sosial",
-            details: "Ada hal yang ingin saya diskusikan terkait pertemanan.",
-            preference: "Wali kelas",
-            status: "Disetujui",
-            createdAt: "2026-04-07T10:15:00Z",
-        },
-    ]);
-
-    const [modalOpen, setModalOpen] = useState(false);
-    const [form, setForm] = useState({
-        reason: counselingReasons[0],
-        details: "",
-        preference: "Guru BK",
-        note: "",
-    });
-
-    const submitRequest = (event) => {
-        event.preventDefault();
-
-        const nextRequest = {
-            id: Date.now(),
-            reason: form.reason,
-            details: form.details,
-            preference: form.preference,
-            status: "Menunggu konfirmasi siswa",
-            createdAt: new Date().toISOString(),
-            note: form.note,
-        };
-
-        setRequests((current) => [nextRequest, ...current]);
-        setForm({
-            reason: counselingReasons[0],
-            details: "",
-            preference: "Guru BK",
-            note: "",
-        });
-        setModalOpen(false);
-
-        onSuccess({
-            title: "Permohonan terkirim",
-            message: "Form konseling berhasil dikirim ke sistem.",
-            summary: [
-                `Alasan: ${nextRequest.reason}`,
-                `Tujuan: ${nextRequest.preference}`,
-                `Status: ${nextRequest.status}`,
-            ],
-        });
-    };
-
-    return (
-        <div className="space-y-4">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex items-center justify-between gap-4">
-                <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                        Konseling
-                    </p>
-                    <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                        Riwayat pengajuan konseling
-                    </h3>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => setModalOpen(true)}
-                    className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-white"
-                >
-                    Ajukan Konseling
-                </button>
-            </section>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {requests.map((request) => (
-                    <div
-                        key={request.id}
-                        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-                    >
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="text-sm font-black text-slate-900">
-                                    {request.reason}
-                                </p>
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                    {formatDateTime(request.createdAt)}
-                                </p>
-                            </div>
-                            <span
-                                className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${request.status === "Disetujui" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
-                            >
-                                {request.status}
-                            </span>
-                        </div>
-                        <p className="mt-2 text-sm text-slate-600 leading-6">
-                            {request.details}
-                        </p>
-                        <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                            Tujuan: {request.preference}
-                        </p>
-                    </div>
-                ))}
-            </div>
-
-            {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-                    <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                            <h3 className="text-base font-black text-slate-900 font-outfit">
-                                Form Konseling
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-800"
-                            >
-                                <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2.5}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <form
-                            onSubmit={submitRequest}
-                            className="p-5 space-y-4"
-                        >
-                            <label className="block space-y-1.5">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Alasan
-                                </span>
-                                <select
-                                    value={form.reason}
-                                    onChange={(event) =>
-                                        setForm((current) => ({
-                                            ...current,
-                                            reason: event.target.value,
-                                        }))
-                                    }
-                                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
-                                >
-                                    {counselingReasons.map((reason) => (
-                                        <option key={reason} value={reason}>
-                                            {reason}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-
-                            <label className="block space-y-1.5">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Tujuan
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {["Guru BK", "Wali kelas"].map(
-                                        (preference) => (
-                                            <button
-                                                key={preference}
-                                                type="button"
-                                                onClick={() =>
-                                                    setForm((current) => ({
-                                                        ...current,
-                                                        preference,
-                                                    }))
-                                                }
-                                                className={`rounded-xl border px-3 py-2 text-xs font-bold ${form.preference === preference ? "bg-blue-600 text-white border-blue-600" : "bg-slate-50 text-slate-600 border-slate-200"}`}
-                                            >
-                                                {preference}
-                                            </button>
-                                        ),
-                                    )}
-                                </div>
-                            </label>
-
-                            <label className="block space-y-1.5">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Detail Masalah
-                                </span>
-                                <textarea
-                                    value={form.details}
-                                    onChange={(event) =>
-                                        setForm((current) => ({
-                                            ...current,
-                                            details: event.target.value,
-                                        }))
-                                    }
-                                    className="w-full min-h-28 rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-sm text-slate-800 outline-none focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100 resize-none"
-                                    placeholder="Jelaskan masalah secara ringkas dan jelas..."
-                                />
-                            </label>
-
-                            <label className="block space-y-1.5">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Catatan Tambahan
-                                </span>
-                                <input
-                                    value={form.note}
-                                    onChange={(event) =>
-                                        setForm((current) => ({
-                                            ...current,
-                                            note: event.target.value,
-                                        }))
-                                    }
-                                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
-                                    placeholder="Opsional"
-                                />
-                            </label>
-
-                            <div className="flex justify-end gap-2 pt-1">
-                                <button
-                                    type="button"
-                                    onClick={() => setModalOpen(false)}
-                                    className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white"
-                                >
-                                    Kirim
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const NotificationsTab = () => {
-    const [selectedNotification, setSelectedNotification] = useState(null);
-    const [calls, setCalls] = useState([
-        {
-            id: 1,
-            teacherName: "Ibu Rani",
-            role: "Guru BK",
-            reason: "Check-in harian menunjukkan penurunan mood selama 3 hari terakhir.",
-            description:
-                "Kami ingin memastikan kondisi siswa tetap aman dan nyaman.",
-            schedule: "Selasa, 10:30 WIB",
-            status: "Menunggu konfirmasi siswa",
-            action: "Disarankan hadir lebih awal untuk sesi awal.",
-        },
-        {
-            id: 2,
-            teacherName: "Pak Dimas",
-            role: "Wali Kelas",
-            reason: "Pengajuan konseling terkait tekanan akademik.",
-            description:
-                "Sesi lanjutan dijadwalkan agar diskusi lebih terarah.",
-            schedule: "Kamis, 13:00 WIB",
-            status: "Disetujui",
-            action: "Siapkan catatan singkat untuk sesi tindak lanjut.",
-        },
-    ]);
-
-    const updateStatus = (status) => {
-        if (!selectedNotification) return;
-
-        setCalls((current) =>
-            current.map((call) =>
-                call.id === selectedNotification.id
-                    ? { ...call, status }
-                    : call,
-            ),
-        );
-        setSelectedNotification((current) =>
-            current ? { ...current, status } : current,
-        );
-    };
-
-    return (
-        <div className="space-y-4">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    Notifikasi Konseling
-                </p>
-                <h3 className="mt-1 text-lg font-black text-slate-900 font-outfit">
-                    Panggilan resmi dan tindak lanjut
-                </h3>
-            </section>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {calls.map((call) => (
-                    <button
-                        key={call.id}
-                        type="button"
-                        onClick={() => setSelectedNotification(call)}
-                        className="text-left rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-200"
-                    >
-                        <div className="flex items-start gap-3">
-                            <div className="w-11 h-11 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-black">
-                                {initials(call.teacherName)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <h4 className="text-sm font-black text-slate-900">
-                                        {call.teacherName}
-                                    </h4>
-                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                                        {call.role}
-                                    </span>
-                                </div>
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                    {call.schedule}
-                                </p>
-                                <p className="mt-2 text-sm text-slate-600 leading-6">
-                                    {call.reason}
-                                </p>
-                            </div>
-                        </div>
-                    </button>
-                ))}
-            </div>
-
-            {selectedNotification && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/45 backdrop-blur-sm">
-                    <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                            <h3 className="text-base font-black text-slate-900 font-outfit">
-                                Detail Panggilan
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={() => setSelectedNotification(null)}
-                                className="text-slate-400 hover:text-slate-800"
-                            >
-                                <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2.5}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-5 space-y-3">
-                            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Pemberi Panggilan
-                                </p>
-                                <p className="mt-1 text-sm font-bold text-slate-900">
-                                    {selectedNotification.teacherName} ·{" "}
-                                    {selectedNotification.role}
-                                </p>
-                            </div>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Alasan
-                                </p>
-                                <p className="mt-1 text-sm text-slate-600 leading-6">
-                                    {selectedNotification.reason}
-                                </p>
-                            </div>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Deskripsi
-                                </p>
-                                <p className="mt-1 text-sm text-slate-600 leading-6">
-                                    {selectedNotification.description}
-                                </p>
-                                <p className="mt-2 text-sm text-slate-600 leading-6">
-                                    <span className="font-bold text-slate-900">
-                                        Catatan:
-                                    </span>{" "}
-                                    {selectedNotification.action}
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                {[
-                                    "Disetujui",
-                                    "Menunggu konfirmasi siswa",
-                                    "Ditunda",
-                                ].map((status) => (
-                                    <button
-                                        key={status}
-                                        type="button"
-                                        onClick={() => updateStatus(status)}
-                                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600"
-                                    >
-                                        {status}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-export default function MyFess({ posts = [] }) {
-    const [activeTab, setActiveTab] = useState("checkin");
-    const [success, setSuccess] = useState({
-        open: false,
-        title: "",
-        message: "",
-        summary: [],
-    });
-
-    const normalizedPosts = useMemo(() => normalizePosts(posts), [posts]);
-
-    const menu = [
-        {
-            id: "checkin",
-            name: "Check-in",
-            icon: (
-                <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                </svg>
-            ),
-        },
-        {
-            id: "forum",
-            name: "Forum",
-            icon: (
-                <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    />
-                </svg>
-            ),
-        },
-        {
-            id: "konseling",
-            name: "Konseling",
-            icon: (
-                <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                    />
-                </svg>
-            ),
-        },
-        {
-            id: "notifikasi",
-            name: "Panggilan",
-            icon: (
-                <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                </svg>
-            ),
-        },
+    const tabs = [
+        { key: 'checkin', label: 'Check-in & Refleksi', icon: 'M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z' },
+        { key: 'counseling', label: 'Konseling', icon: 'M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155' },
+        { key: 'panggilan', label: 'Panggilan', icon: 'M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0' },
     ];
 
     return (
         <DashboardLayout headerTitle="MyFess">
             <Head title="MyFess" />
-
-            {success.open && (
-                <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-                    <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl p-5 text-center">
-                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                            <svg
-                                className="w-6 h-6"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={3}
-                                    d="M5 13l4 4L19 7"
-                                />
-                            </svg>
+            <div className="space-y-6">
+                {/* Page Header */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
                         </div>
-                        <h4 className="text-lg font-black text-slate-900 font-outfit">
-                            {success.title}
-                        </h4>
-                        <p className="text-sm text-slate-500 mt-1">
-                            {success.message}
-                        </p>
-                        {success.summary?.length > 0 && (
-                            <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-left">
-                                {success.summary.map((item) => (
-                                    <p
-                                        key={item}
-                                        className="text-xs text-slate-700"
-                                    >
-                                        • {item}
-                                    </p>
-                                ))}
-                            </div>
-                        )}
-                        <button
-                            onClick={() =>
-                                setSuccess({
-                                    open: false,
-                                    title: "",
-                                    message: "",
-                                    summary: [],
-                                })
-                            }
-                            className="mt-4 w-full rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black uppercase tracking-[0.2em] text-white"
-                        >
-                            Tutup
-                        </button>
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">MyFess — Ruang Aman</h2>
+                            <p className="text-sm text-gray-500">Check-in harian, layanan konseling, dan informasi panggilan BK.</p>
+                        </div>
+                    </div>
+
+                    {/* Tab Navigation */}
+                    <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+                        {tabs.map(tab => (
+                            <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${activeTab === tab.key ? 'bg-primary-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={tab.icon} /></svg>
+                                <span className="hidden sm:inline">{tab.label}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
-            )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-2 mb-4 overflow-x-auto">
-                <div className="flex min-w-max gap-1.5">
-                    {menu.map((item) => (
-                        <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => setActiveTab(item.id)}
-                            className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ${activeTab === item.id ? "bg-slate-900 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-                        >
-                            {item.icon}
-                            {item.name}
+                {activeTab === 'checkin' && <CheckinTab />}
+                {activeTab === 'counseling' && <CounselingTab />}
+                {activeTab === 'panggilan' && <PanggilanTab />}
+            </div>
+        </DashboardLayout>
+    );
+}
+
+// ─── Tab: Check-in & Refleksi ───────────────────────────────────────
+function CheckinTab() {
+    const { auth } = usePage().props;
+    const firstName = auth?.user?.name?.split(' ')[0] || 'Siswa';
+
+    const [emotion, setEmotion] = useState('');
+    const [reflection, setReflection] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    // History (max 3, no edit/delete)
+    const [history, setHistory] = useState([
+        { id: 1, emotion: 'baik', reflection: 'Hari ini cukup produktif, menyelesaikan tugas matematika.', createdAt: new Date(Date.now() - 86400000).toISOString() },
+        { id: 2, emotion: 'cukup', reflection: 'Sedikit lelah tapi masih semangat belajar.', createdAt: new Date(Date.now() - 172800000).toISOString() },
+        { id: 3, emotion: 'sangat_baik', reflection: 'Senang sekali hari ini dapat nilai bagus di ujian.', createdAt: new Date(Date.now() - 259200000).toISOString() },
+    ]);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!emotion) return;
+        setSubmitting(true);
+        setTimeout(() => {
+            const newEntry = { id: Date.now(), emotion, reflection: reflection.trim(), createdAt: new Date().toISOString() };
+            setHistory(h => [newEntry, ...h].slice(0, 3));
+            setReflection('');
+            setEmotion('');
+            setSubmitting(false);
+            if (window.AppAlert) window.AppAlert.toast('success', 'Check-in berhasil disimpan!');
+        }, 600);
+    };
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Check-in Form - 3 cols */}
+            <div className="lg:col-span-3 space-y-4">
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">Ceritakan Harimu, {firstName}</h3>
+                    <p className="text-xs text-gray-400 mb-4">Bagaimana perasaanmu hari ini? Pilih kondisi dan tulis refleksimu.</p>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Emotion Picker */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Kondisi Hari Ini</label>
+                            <div className="grid grid-cols-5 gap-2">
+                                {EMOTIONS.map(em => (
+                                    <button key={em.id} type="button" onClick={() => setEmotion(em.id)}
+                                        className={`p-3 rounded-xl border text-center transition-all ${emotion === em.id ? 'shadow-sm scale-[1.02]' : 'hover:border-gray-200'}`}
+                                        style={emotion === em.id ? { background: em.bg, borderColor: em.color, boxShadow: `0 2px 8px ${em.color}20` } : { borderColor: '#f1f5f9' }}
+                                    >
+                                        <span className="text-xl block mb-1">{em.icon}</span>
+                                        <span className="text-[10px] font-medium" style={{ color: emotion === em.id ? em.color : '#94a3b8' }}>{em.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Reflection */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Refleksi Harian</label>
+                            <textarea value={reflection} onChange={e => setReflection(e.target.value)} rows={4} placeholder="Ceritakan apa yang kamu rasakan, pengalaman, atau hal yang ingin kamu sampaikan..." className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all resize-none placeholder:text-gray-400" />
+                        </div>
+
+                        {/* Submit */}
+                        <button type="submit" disabled={!emotion || submitting} className="w-full py-2.5 bg-primary-500 text-white font-semibold text-sm rounded-xl hover:bg-primary-600 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            {submitting ? (
+                                <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Menyimpan...</>
+                            ) : (
+                                <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>Kirim Check-in</>
+                            )}
                         </button>
-                    ))}
+                    </form>
                 </div>
             </div>
 
-            {activeTab === "checkin" && (
-                <CheckinTab
-                    onSuccess={(payload) =>
-                        setSuccess({ open: true, ...payload })
-                    }
-                />
+            {/* History - 2 cols */}
+            <div className="lg:col-span-2 space-y-4">
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Riwayat Check-in</h3>
+                    {history.length === 0 ? (
+                        <div className="text-center py-8">
+                            <svg className="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <p className="text-xs text-gray-400">Belum ada riwayat check-in.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {history.slice(0, 3).map(item => {
+                                const em = EMOTIONS.find(e => e.id === item.emotion);
+                                return (
+                                    <div key={item.id} className="p-3.5 rounded-xl border border-gray-100 hover:bg-gray-50 transition">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">{em?.icon || '😐'}</span>
+                                                <span className="text-xs font-semibold" style={{ color: em?.color }}>{em?.label}</span>
+                                            </div>
+                                            <span className="text-[10px] text-gray-400 font-medium">{fmtDate(item.createdAt)}</span>
+                                        </div>
+                                        {item.reflection && <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{item.reflection}</p>}
+                                    </div>
+                                );
+                            })}
+                            <p className="text-[10px] text-gray-400 text-center">Menampilkan 3 check-in terakhir · Tidak dapat diedit/dihapus</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Tab: Konseling ─────────────────────────────────────────────────
+function CounselingTab() {
+    const [showForm, setShowForm] = useState(false);
+    const [editItem, setEditItem] = useState(null);
+    const [items, setItems] = useState([
+        { id: 1, reason: 'Masalah akademik', description: 'Saya merasa kesulitan memahami materi pelajaran Matematika semester ini.', preferred_date: '2026-04-20', preferred_time: '10:00', status: 'Menunggu konfirmasi', createdAt: '2026-04-15T08:00:00' },
+        { id: 2, reason: 'Hubungan sosial', description: 'Ingin konsultasi tentang cara berkomunikasi lebih baik.', preferred_date: '2026-04-18', preferred_time: '14:00', status: 'Disetujui', createdAt: '2026-04-10T10:00:00' },
+    ]);
+    const [form, setForm] = useState({ reason: '', description: '', preferred_date: '', preferred_time: '' });
+
+    const canModify = (status) => status === 'Menunggu konfirmasi';
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (editItem) {
+            setItems(prev => prev.map(i => i.id === editItem.id ? { ...i, ...form } : i));
+            setEditItem(null);
+        } else {
+            setItems(prev => [{ id: Date.now(), ...form, status: 'Menunggu konfirmasi', createdAt: new Date().toISOString() }, ...prev]);
+        }
+        setForm({ reason: '', description: '', preferred_date: '', preferred_time: '' });
+        setShowForm(false);
+        if (window.AppAlert) window.AppAlert.toast('success', editItem ? 'Konseling diperbarui!' : 'Pengajuan konseling berhasil!');
+    };
+
+    const handleEdit = (item) => {
+        if (!canModify(item.status)) return;
+        setForm({ reason: item.reason, description: item.description, preferred_date: item.preferred_date, preferred_time: item.preferred_time });
+        setEditItem(item);
+        setShowForm(true);
+    };
+
+    const handleDelete = (item) => {
+        if (!canModify(item.status)) return;
+        if (window.AppAlert) {
+            window.Swal?.fire({ title: 'Hapus konseling?', text: 'Data ini akan dihapus permanen.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Hapus' }).then(r => { if (r.isConfirmed) { setItems(prev => prev.filter(i => i.id !== item.id)); window.AppAlert.toast('success', 'Konseling dihapus.'); } });
+        } else {
+            setItems(prev => prev.filter(i => i.id !== item.id));
+        }
+    };
+
+    return (
+        <div className="space-y-4">
+            {/* Action bar */}
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">{items.length} pengajuan konseling</p>
+                <button onClick={() => { setShowForm(true); setEditItem(null); setForm({ reason: '', description: '', preferred_date: '', preferred_time: '' }); }} className="px-4 py-2 bg-primary-500 text-white text-xs font-semibold rounded-xl hover:bg-primary-600 transition flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    Ajukan Konseling
+                </button>
+            </div>
+
+            {/* List */}
+            {items.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                    <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" /></svg>
+                    <p className="text-sm font-medium text-gray-600">Belum ada pengajuan</p>
+                    <p className="text-xs text-gray-400 mt-1">Klik tombol di atas untuk mengajukan konseling baru.</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {items.map(item => (
+                        <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition">
+                            <div className="flex items-start justify-between mb-2">
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-900">{item.reason}</h4>
+                                    <p className="text-xs text-gray-400 mt-0.5">Diajukan {fmtDate(item.createdAt)}</p>
+                                </div>
+                                <StatusBadge status={item.status} />
+                            </div>
+                            <p className="text-xs text-gray-600 leading-relaxed mb-3 line-clamp-2">{item.description}</p>
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                                <div className="flex items-center gap-3 text-xs text-gray-500">
+                                    <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>{fmtDate(item.preferred_date)}</span>
+                                    <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{item.preferred_time} WIB</span>
+                                </div>
+                                {canModify(item.status) && (
+                                    <div className="flex gap-1.5">
+                                        <button onClick={() => handleEdit(item)} className="p-1.5 text-gray-400 hover:text-primary-500 hover:bg-primary-50 rounded-lg transition" title="Edit">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                                        </button>
+                                        <button onClick={() => handleDelete(item)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition" title="Hapus">
+                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
-            {activeTab === "forum" && (
-                <ForumTab
-                    initialPosts={normalizedPosts}
-                    onSuccess={(payload) =>
-                        setSuccess({ open: true, ...payload })
-                    }
-                />
+
+            {/* Form Modal */}
+            <Modal open={showForm} onClose={() => { setShowForm(false); setEditItem(null); }} title={editItem ? 'Edit Konseling' : 'Ajukan Konseling Baru'}>
+                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                    <div>
+                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Kategori</label>
+                        <select value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} required className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all">
+                            <option value="">Pilih alasan...</option>
+                            {COUNSELING_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Deskripsi</label>
+                        <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={4} required placeholder="Ceritakan permasalahanmu..." className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all resize-none" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Tanggal</label>
+                            <input type="date" value={form.preferred_date} onChange={e => setForm(f => ({ ...f, preferred_date: e.target.value }))} required className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Waktu</label>
+                            <input type="time" value={form.preferred_time} onChange={e => setForm(f => ({ ...f, preferred_time: e.target.value }))} required className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button type="button" onClick={() => { setShowForm(false); setEditItem(null); }} className="px-4 py-2 text-sm font-medium border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition">Batal</button>
+                        <button type="submit" className="px-4 py-2 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition">{editItem ? 'Simpan Perubahan' : 'Ajukan'}</button>
+                    </div>
+                </form>
+            </Modal>
+        </div>
+    );
+}
+
+// ─── Tab: Panggilan ─────────────────────────────────────────────────
+function PanggilanTab() {
+    const [items] = useState([
+        { id: 1, title: 'Panggilan Wali Kelas', description: 'Diminta hadir untuk evaluasi prestasi semester.', date: '2026-04-22', time: '09:00', caller: 'Ibu Sari Dewi, S.Pd', location: 'Ruang BK', status: 'Menunggu konfirmasi', createdAt: '2026-04-16T08:00:00' },
+        { id: 2, title: 'Panggilan Guru BK', description: 'Follow-up terkait hasil konseling terakhir.', date: '2026-04-19', time: '13:30', caller: 'Bpk. Heru, M.Pd', location: 'Ruang BK Lt. 2', status: 'Disetujui', createdAt: '2026-04-14T10:00:00' },
+    ]);
+
+    const canModify = (status) => status === 'Menunggu konfirmasi';
+
+    return (
+        <div className="space-y-4">
+            <p className="text-sm text-gray-500">{items.length} panggilan tercatat</p>
+
+            {items.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                    <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+                    <p className="text-sm font-medium text-gray-600">Belum ada panggilan</p>
+                    <p className="text-xs text-gray-400 mt-1">Panggilan dari guru BK atau wali kelas akan muncul di sini.</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {items.map(item => (
+                        <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition">
+                            <div className="flex items-start justify-between mb-2">
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-900">{item.title}</h4>
+                                    <p className="text-xs text-gray-400 mt-0.5">dari {item.caller}</p>
+                                </div>
+                                <StatusBadge status={item.status} />
+                            </div>
+                            <p className="text-xs text-gray-600 leading-relaxed mb-3">{item.description}</p>
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                    <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>{fmtDate(item.date)}</span>
+                                    <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{item.time} WIB</span>
+                                    <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>{item.location}</span>
+                                </div>
+                                {canModify(item.status) && (
+                                    <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full">Konfirmasi kehadiran</span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
-            {activeTab === "konseling" && (
-                <CounselingTab
-                    onSuccess={(payload) =>
-                        setSuccess({ open: true, ...payload })
-                    }
-                />
-            )}
-            {activeTab === "notifikasi" && <NotificationsTab />}
-        </DashboardLayout>
+        </div>
     );
 }

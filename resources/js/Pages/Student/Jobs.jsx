@@ -1,141 +1,171 @@
-import React from "react";
-import { Head } from "@inertiajs/react";
-import DashboardLayout from "@/Layouts/DashboardLayout";
+import React, { useState } from 'react';
+import { Head } from '@inertiajs/react';
+import DashboardLayout from '@/Layouts/DashboardLayout';
 
 export default function Jobs({ jobs }) {
+    const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState('all');
+    const [detailJob, setDetailJob] = useState(null);
+
     const dummyJobs = [
-        {
-            id: 1,
-            title: "Junior Web Developer",
-            company: "Global Tech",
-            location: "Jakarta",
-            salary: "Rp 5M - 8M",
-            type: "Magang",
-        },
-        {
-            id: 2,
-            title: "UI Designer Trainee",
-            company: "Creative Studio",
-            location: "Bandung",
-            salary: "Kompetitif",
-            type: "Full-time",
-        },
+        { id: 1, title: 'Junior Web Developer', company: 'Global Tech', location: 'Jakarta', salary: 'Rp 5M - 8M', type: 'Magang', description: 'Kesempatan magang untuk siswa SMK jurusan RPL. Mengembangkan frontend dan backend.', requirements: ['Menguasai HTML, CSS, JavaScript', 'Familiar dengan framework React/Vue', 'Bisa bekerja dalam tim'], qualifications: ['Siswa kelas 11/12 SMK', 'Jurusan RPL/TKJ', 'IPK minimal 3.0'], benefits: ['Sertifikat', 'Uang saku harian', 'Mentoring senior developer'], deadline: '2026-05-01', posted_at: '2026-04-10', contact: 'hr@globaltech.co.id' },
+        { id: 2, title: 'UI/UX Designer Trainee', company: 'Creative Studio', location: 'Bandung', salary: 'Kompetitif', type: 'Full-time', description: 'Belajar desain UI/UX di studio kreatif terkemuka bersama designer senior.', requirements: ['Familiar dengan Figma/Adobe XD', 'Memiliki sense of design yang baik', 'Portofolio diutamakan'], qualifications: ['Fresh graduate SMK/SMA', 'Tertarik bidang desain'], benefits: ['Gaji tetap', 'Training gratis', 'Lingkungan kerja kreatif'], deadline: '2026-04-30', posted_at: '2026-04-08', contact: 'jobs@creativestudio.id' },
+        { id: 3, title: 'Data Entry Intern', company: 'PT Maju Bersama', location: 'Surabaya', salary: 'Rp 2M - 3M', type: 'Magang', description: 'Posisi magang untuk pendataan administrasi dan pengarsipan dokumen digital.', requirements: ['Teliti dan rapih', 'Menguasai Microsoft Office'], qualifications: ['Siswa SMK semua jurusan'], benefits: ['Sertifikat magang', 'Uang transport'], deadline: '2026-05-15', posted_at: '2026-04-12', contact: 'recruitment@majubersama.co.id' },
+        { id: 4, title: 'Social Media Admin', company: 'Tokopedia', location: 'Jakarta', salary: 'Rp 4M - 6M', type: 'Part-time', description: 'Mengelola akun sosial media brand, membuat konten, dan engagement dengan audience.', requirements: ['Aktif di media sosial', 'Kreatif dalam membuat konten', 'Mengerti analitik sosmed'], qualifications: ['Siswa/mahasiswa', 'Domisili Jakarta'], benefits: ['Fleksibel WFH', 'Bonus performa', 'Free product'], deadline: '2026-04-28', posted_at: '2026-04-05', contact: 'talent@tokopedia.com' },
     ];
 
-    const displayJobs = jobs && jobs.length > 0 ? jobs : dummyJobs;
+    const displayJobs = jobs?.length > 0 ? jobs : dummyJobs;
+    const types = ['all', ...new Set(displayJobs.map(j => j.type))];
+    const filteredJobs = displayJobs.filter(j => {
+        const ms = !search || j.title.toLowerCase().includes(search.toLowerCase()) || j.company.toLowerCase().includes(search.toLowerCase());
+        const mf = filter === 'all' || j.type === filter;
+        return ms && mf;
+    });
+
+    const typeColors = { 'Magang': 'bg-blue-50 text-blue-600 border-blue-100', 'Full-time': 'bg-green-50 text-green-600 border-green-100', 'Part-time': 'bg-amber-50 text-amber-600 border-amber-100' };
 
     return (
-        <DashboardLayout
-            headerTitle="Portal Loker"
-            headerSubtitle="Anda berada di ruang modul Portal Loker. Modul dinamis ini masih dalam tahap scaffolding."
-            headerBadge="Portal Loker"
-            backHref={route("student.dashboard")}
-            backLabel="Kembali ke Dashboard Utama"
-        >
-            <Head title="Karir" />
-
-            <div className="space-y-8">
-                <div className="text-left">
-                    <h2 className="text-2xl font-bold text-slate-900 font-outfit uppercase tracking-tight">
-                        Lowongan Kerja
-                    </h2>
-                    <p className="text-slate-500 text-sm mt-1">
-                        Peluang karir dan magang eksklusif untuk alumni & siswa.
-                    </p>
+        <DashboardLayout headerTitle="Lowongan Kerja">
+            <Head title="Lowongan Kerja" />
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg>
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Bursa Kerja</h2>
+                            <p className="text-sm text-gray-500">Peluang karir, magang, dan lowongan eksklusif dari BKK sekolah.</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <input
-                        className="flex-1 bg-slate-50 border border-slate-100 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-                        placeholder="Cari posisi pekerjaan..."
-                    />
-                    <button className="bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-black transition-all">
-                        Cari
-                    </button>
+                {/* Search + Filter */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative flex-1 w-full">
+                        <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                        <input className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all placeholder:text-gray-400" placeholder="Cari posisi atau perusahaan..." value={search} onChange={e => setSearch(e.target.value)} />
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                        {types.map(type => (
+                            <button key={type} onClick={() => setFilter(type)} className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${filter === type ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}>
+                                {type === 'all' ? 'Semua' : type}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {displayJobs.map((job) => (
-                        <div
-                            key={job.id}
-                            className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:border-blue-300 transition-all flex flex-col h-full relative"
-                        >
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="w-12 h-12 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                                    <svg
-                                        className="w-8 h-8"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                                        />
-                                    </svg>
+                {/* Job Cards */}
+                {filteredJobs.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
+                        <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" /></svg>
+                        <p className="text-sm font-medium text-gray-600">Tidak ada lowongan</p>
+                        <p className="text-xs text-gray-400 mt-1">Coba ubah kata kunci pencarian atau filter Anda.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filteredJobs.map(job => (
+                            <div key={job.id} onClick={() => setDetailJob(job)} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition cursor-pointer group">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-sm font-bold text-primary-600">{job.company?.substring(0, 2)}</div>
+                                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${typeColors[job.type] || 'bg-gray-50 text-gray-600 border-gray-100'}`}>{job.type}</span>
                                 </div>
-                                <span className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[9px] font-bold rounded uppercase tracking-widest">
-                                    {job.type}
-                                </span>
-                            </div>
-
-                            <div className="flex-1 text-left">
-                                <h3 className="text-lg font-bold text-slate-900 font-outfit uppercase tracking-tight leading-tight mb-1">
-                                    {job.title}
-                                </h3>
-                                <p className="text-blue-600 font-bold text-xs uppercase tracking-widest mb-6">
-                                    {job.company}
-                                </p>
-
-                                <div className="space-y-3 mb-8">
-                                    <div className="flex items-center gap-3 text-slate-400">
-                                        <svg
-                                            className="w-4 h-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                            />
-                                        </svg>
-                                        <span className="text-xs font-bold uppercase tracking-widest">
-                                            {job.location}
-                                        </span>
+                                <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition">{job.title}</h3>
+                                <p className="text-xs text-primary-500 font-medium mb-2">{job.company}</p>
+                                <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">{job.description}</p>
+                                <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>{job.location}</span>
+                                        <span className="font-medium text-gray-600">{job.salary}</span>
                                     </div>
-                                    <div className="flex items-center gap-3 text-emerald-600">
-                                        <svg
-                                            className="w-4 h-4"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                            />
-                                        </svg>
-                                        <span className="text-xs font-bold">
-                                            {job.salary}
-                                        </span>
+                                    <span className="text-primary-500 font-medium group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">Detail <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Job Detail Modal */}
+            {detailJob && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm" onClick={() => setDetailJob(null)}>
+                    <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <h3 className="text-base font-semibold text-gray-900">Detail Lowongan</h3>
+                            <button onClick={() => setDetailJob(null)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                        </div>
+                        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+                            {/* Company Header */}
+                            <div className="flex items-start gap-4">
+                                <div className="w-14 h-14 rounded-xl bg-primary-50 border border-primary-100 flex items-center justify-center text-lg font-bold text-primary-600">{detailJob.company?.substring(0, 2)}</div>
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-900">{detailJob.title}</h2>
+                                    <p className="text-sm text-primary-500 font-medium">{detailJob.company}</p>
+                                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                        <span className="flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>{detailJob.location}</span>
+                                        <span className="font-medium text-gray-700">{detailJob.salary}</span>
+                                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${typeColors[detailJob.type] || ''}`}>{detailJob.type}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <button className="w-full py-3 bg-slate-900 text-white font-bold text-xs uppercase rounded-lg hover:bg-black transition-all">
-                                Lamar Kerja
+                            {/* Description */}
+                            <div>
+                                <h4 className="text-sm font-semibold text-gray-900 mb-2">Deskripsi Pekerjaan</h4>
+                                <div className="h-px bg-gray-100 mb-3" />
+                                <p className="text-sm text-gray-600 leading-relaxed">{detailJob.description}</p>
+                            </div>
+
+                            {/* Requirements */}
+                            {detailJob.requirements?.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Persyaratan</h4>
+                                    <div className="h-px bg-gray-100 mb-3" />
+                                    <ul className="space-y-1.5">{detailJob.requirements.map((r, i) => <li key={i} className="text-sm text-gray-600 flex items-start gap-2"><svg className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.403 12.652a3 3 0 000-5.304 3 3 0 00-3.75-3.751 3 3 0 00-5.305 0 3 3 0 00-3.751 3.75 3 3 0 000 5.305 3 3 0 003.75 3.751 3 3 0 005.305 0 3 3 0 003.751-3.75zm-2.546-4.46a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>{r}</li>)}</ul>
+                                </div>
+                            )}
+
+                            {/* Qualifications */}
+                            {detailJob.qualifications?.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Kualifikasi</h4>
+                                    <div className="h-px bg-gray-100 mb-3" />
+                                    <div className="flex flex-wrap gap-2">{detailJob.qualifications.map((q, i) => <span key={i} className="text-xs bg-gray-50 text-gray-600 px-3 py-1.5 rounded-full border border-gray-100">{q}</span>)}</div>
+                                </div>
+                            )}
+
+                            {/* Benefits */}
+                            {detailJob.benefits?.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">Benefit</h4>
+                                    <div className="h-px bg-gray-100 mb-3" />
+                                    <div className="flex flex-wrap gap-2">{detailJob.benefits.map((b, i) => <span key={i} className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-full border border-green-100">{b}</span>)}</div>
+                                </div>
+                            )}
+
+                            {/* Meta */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Deadline</p>
+                                    <p className="text-sm font-semibold text-gray-900">{detailJob.deadline ? new Date(detailJob.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">Kontak</p>
+                                    <p className="text-sm font-semibold text-primary-600">{detailJob.contact || '-'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
+                            <button onClick={() => setDetailJob(null)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition">Tutup</button>
+                            <button className="px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>Lamar Sekarang
                             </button>
                         </div>
-                    ))}
+                    </div>
                 </div>
-            </div>
+            )}
         </DashboardLayout>
     );
 }

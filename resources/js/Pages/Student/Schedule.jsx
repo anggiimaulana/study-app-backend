@@ -1,372 +1,203 @@
-import React, { useState, useMemo } from "react";
-import { Head } from "@inertiajs/react";
-import DashboardLayout from "@/Layouts/DashboardLayout";
+import React, { useState, useMemo } from 'react';
+import { Head } from '@inertiajs/react';
+import DashboardLayout from '@/Layouts/DashboardLayout';
+import Modal from '@/Components/ui/Modal';
 
 export default function Schedule({ schedules }) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
     const [selectedDate, setSelectedDate] = useState(today.getDate());
-    const [detailModal, setDetailModal] = useState(null);
+    const [detailItem, setDetailItem] = useState(null);
 
-    const monthNames = [
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
-    ];
-    const shortDays = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const shortDays = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
 
-    const holidays = {
-        "2026-01-01": "Tahun Baru",
-        "2026-03-29": "Hari Raya Nyepi",
-        "2026-03-31": "Idul Fitri",
-        "2026-04-01": "Idul Fitri",
-    };
+    const holidays = { '2026-01-01': 'Tahun Baru', '2026-03-29': 'Hari Raya Nyepi', '2026-03-31': 'Idul Fitri', '2026-04-01': 'Idul Fitri' };
 
     const getScheduleForJsDay = (jsDay) => {
         const dbDay = jsDay === 0 ? 7 : jsDay;
-        return schedules[dbDay] || [];
+        return schedules?.[dbDay] || [];
     };
 
     const calendarDays = useMemo(() => {
         const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-        const daysInMonth = new Date(
-            currentYear,
-            currentMonth + 1,
-            0,
-        ).getDate();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
         const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
-
         const days = [];
-        for (let i = firstDay - 1; i >= 0; i--) {
-            days.push({ day: prevMonthDays - i, current: false });
-        }
+        for (let i = firstDay - 1; i >= 0; i--) days.push({ day: prevMonthDays - i, current: false });
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const jsDay = new Date(currentYear, currentMonth, d).getDay();
-            days.push({
-                day: d,
-                current: true,
-                isToday:
-                    d === today.getDate() &&
-                    currentMonth === today.getMonth() &&
-                    currentYear === today.getFullYear(),
-                isHoliday: holidays[dateStr],
-                hasSchedule:
-                    getScheduleForJsDay(jsDay).length > 0 &&
-                    jsDay !== 0 &&
-                    jsDay !== 6,
-                jsDay,
-            });
+            days.push({ day: d, current: true, isToday: d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear(), isHoliday: holidays[dateStr], hasSchedule: getScheduleForJsDay(jsDay).length > 0 && jsDay !== 0 && jsDay !== 6, jsDay });
         }
-        const remaining = 42 - days.length;
-        for (let i = 1; i <= remaining; i++) {
-            days.push({ day: i, current: false });
-        }
+        const rem = 42 - days.length;
+        for (let i = 1; i <= rem; i++) days.push({ day: i, current: false });
         return days;
     }, [currentMonth, currentYear, schedules]);
 
-    const prevMonth = () => {
-        if (currentMonth === 0) {
-            setCurrentMonth(11);
-            setCurrentYear(currentYear - 1);
-        } else setCurrentMonth(currentMonth - 1);
-    };
+    const prevMonth = () => { if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); } else setCurrentMonth(m => m - 1); };
+    const nextMonth = () => { if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1); } else setCurrentMonth(m => m + 1); };
+    const goToday = () => { setCurrentMonth(today.getMonth()); setCurrentYear(today.getFullYear()); setSelectedDate(today.getDate()); };
 
-    const nextMonth = () => {
-        if (currentMonth === 11) {
-            setCurrentMonth(0);
-            setCurrentYear(currentYear + 1);
-        } else setCurrentMonth(currentMonth + 1);
-    };
-
-    const selectedJsDay = new Date(
-        currentYear,
-        currentMonth,
-        selectedDate,
-    ).getDay();
-    const todaysSchedule = getScheduleForJsDay(selectedJsDay);
-    const selectedDateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDate).padStart(2, "0")}`;
-    const selectedDayLabel = holidays[selectedDateKey]
-        ? "Libur Nasional"
-        : selectedJsDay === 0 || selectedJsDay === 6
-          ? "Weekend"
-          : todaysSchedule.length > 0
-            ? "Hari Masuk"
-            : "Tidak Ada Jadwal";
+    const selJsDay = new Date(currentYear, currentMonth, selectedDate).getDay();
+    const todaysSchedule = getScheduleForJsDay(selJsDay);
+    const selectedDateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+    const isHol = holidays[selectedDateKey];
+    const isWeekend = selJsDay === 0 || selJsDay === 6;
 
     return (
-        <DashboardLayout
-            headerTitle="Jadwal Kelas"
-            headerSubtitle="Kalender akademik yang menyesuaikan hari, bulan, dan detail jadwal harian. Klik tanggal untuk melihat agenda pada tanggal tersebut."
-            headerBadge="Kalender Akademik"
-            backHref={route("student.dashboard")}
-            backLabel="Kembali ke Dashboard Utama"
-        >
+        <DashboardLayout headerTitle="Jadwal Kelas">
             <Head title="Jadwal Pelajaran" />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                {/* Calendar */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white focus-within:ring-2 focus-within:ring-blue-500">
-                        <button
-                            onClick={prevMonth}
-                            className="p-2 text-slate-400 hover:text-slate-900 border border-slate-100 rounded-lg hover:bg-slate-50 transition-all"
-                        >
-                            <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2.5}
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
-                        </button>
-                        <div className="text-center">
-                            <h3 className="font-bold text-slate-900 font-outfit uppercase tracking-tight">
-                                {monthNames[currentMonth]} {currentYear}
-                            </h3>
+            <div className="space-y-6">
+                {/* Page Header */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
                         </div>
-                        <button
-                            onClick={nextMonth}
-                            className="p-2 text-slate-400 hover:text-slate-900 border border-slate-100 rounded-lg hover:bg-slate-50 transition-all"
-                        >
-                            <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2.5}
-                                    d="M9 5l7 7-7 7"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-7 p-4 gap-1">
-                        {shortDays.map((d, i) => (
-                            <div
-                                key={d}
-                                className={`text-center text-[10px] font-bold uppercase tracking-widest p-2 ${i === 0 ? "text-red-500" : "text-slate-400"}`}
-                            >
-                                {d}
-                            </div>
-                        ))}
-                        {calendarDays.map((dayObj, idx) => {
-                            const isSelected =
-                                dayObj.current && dayObj.day === selectedDate;
-                            return (
-                                <button
-                                    key={idx}
-                                    onClick={() =>
-                                        dayObj.current &&
-                                        setSelectedDate(dayObj.day)
-                                    }
-                                    disabled={!dayObj.current}
-                                    className={`relative h-12 rounded-lg text-sm font-bold transition-all flex flex-col items-center justify-center ${
-                                        !dayObj.current
-                                            ? "text-slate-200"
-                                            : isSelected
-                                              ? "bg-blue-600 text-white shadow-lg shadow-blue-100 scale-105 z-10"
-                                              : dayObj.isToday
-                                                ? "bg-blue-50 text-blue-600 ring-1 ring-blue-100"
-                                                : dayObj.isHoliday
-                                                  ? "text-red-600"
-                                                  : "text-slate-600 hover:bg-slate-50"
-                                    }`}
-                                >
-                                    <span>{dayObj.day}</span>
-                                    {dayObj.current && dayObj.hasSchedule && (
-                                        <span
-                                            className={`w-1 h-1 rounded-full absolute bottom-2 ${isSelected ? "bg-white" : "bg-blue-600"}`}
-                                        ></span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="px-4 pb-4 flex flex-wrap gap-2">
-                        {[
-                            { label: "Hari Masuk", color: "bg-blue-600" },
-                            { label: "Weekend", color: "bg-slate-400" },
-                            { label: "Libur Nasional", color: "bg-rose-500" },
-                            { label: "Ada Jadwal", color: "bg-emerald-500" },
-                        ].map((item) => (
-                            <span
-                                key={item.label}
-                                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-slate-500"
-                            >
-                                <span
-                                    className={`w-2 h-2 rounded-full ${item.color}`}
-                                />
-                                {item.label}
-                            </span>
-                        ))}
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Kalender Akademik</h2>
+                            <p className="text-sm text-gray-500">Pilih tanggal untuk melihat jadwal kelas Anda.</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Agenda */}
-                <div className="space-y-6 text-left">
-                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                        <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-400">
-                            Tanggal Terpilih
-                        </p>
-                        <h3 className="mt-2 text-2xl font-black text-slate-900 font-outfit">
-                            {selectedDate} {monthNames[currentMonth]}{" "}
-                            {currentYear}
-                        </h3>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <span
-                                className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] ${selectedDayLabel === "Libur Nasional" ? "bg-rose-100 text-rose-700" : selectedDayLabel === "Weekend" ? "bg-slate-100 text-slate-600" : "bg-emerald-100 text-emerald-700"}`}
-                            >
-                                {selectedDayLabel}
-                            </span>
-                            <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-blue-700">
-                                {todaysSchedule.length} jadwal
-                            </span>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+                    {/* Calendar - 3 cols */}
+                    <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                        {/* Month nav */}
+                        <div className="px-5 py-4 flex items-center justify-between border-b border-gray-50">
+                            <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                            </button>
+                            <h3 className="text-sm font-semibold text-gray-900">{monthNames[currentMonth]} {currentYear}</h3>
+                            <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                            </button>
+                        </div>
+
+                        {/* Days header */}
+                        <div className="grid grid-cols-7 px-4 pt-3 pb-1">
+                            {shortDays.map((d, i) => (
+                                <div key={d} className={`text-center text-[11px] font-medium py-2 ${i === 0 ? 'text-red-400' : 'text-gray-400'}`}>{d}</div>
+                            ))}
+                        </div>
+
+                        {/* Days grid */}
+                        <div className="grid grid-cols-7 px-4 pb-4 gap-1">
+                            {calendarDays.map((dayObj, idx) => {
+                                const isSel = dayObj.current && dayObj.day === selectedDate;
+                                return (
+                                    <button key={idx} onClick={() => dayObj.current && setSelectedDate(dayObj.day)} disabled={!dayObj.current}
+                                        className={`relative h-10 rounded-xl text-sm font-medium transition-all flex flex-col items-center justify-center ${!dayObj.current ? 'text-gray-200' : isSel ? 'bg-primary-500 text-white shadow-sm' : dayObj.isToday ? 'bg-primary-50 text-primary-600 ring-1 ring-primary-100' : dayObj.isHoliday ? 'text-red-500' : 'text-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        <span>{dayObj.day}</span>
+                                        {dayObj.current && dayObj.hasSchedule && <span className={`w-1 h-1 rounded-full absolute bottom-1.5 ${isSel ? 'bg-white' : 'bg-primary-500'}`} />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Legend + Today button */}
+                        <div className="px-4 pb-4 flex items-center justify-between">
+                            <div className="flex flex-wrap gap-3">
+                                {[{ label: 'Ada Jadwal', color: 'bg-primary-500' }, { label: 'Libur', color: 'bg-red-500' }, { label: 'Hari Ini', color: 'bg-primary-200' }].map(l => (
+                                    <span key={l.label} className="inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-400">
+                                        <span className={`w-2 h-2 rounded-full ${l.color}`} />{l.label}
+                                    </span>
+                                ))}
+                            </div>
+                            <button onClick={goToday} className="text-xs font-medium text-primary-500 hover:text-primary-600 px-3 py-1.5 rounded-lg bg-primary-50 hover:bg-primary-100 transition flex items-center gap-1.5">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                                Hari Ini
+                            </button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Agenda - 2 cols */}
+                    <div className="lg:col-span-2 space-y-4">
+                        {/* Date info card */}
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Jadwal Kelas</p>
+                            <h3 className="mt-1.5 text-lg font-semibold text-gray-900">
+                                {dayNames[selJsDay]}, {selectedDate} {monthNames[currentMonth]}
+                            </h3>
+                            <div className="mt-3 flex items-center gap-2">
+                                <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${isHol ? 'bg-red-50 text-red-600' : isWeekend ? 'bg-gray-100 text-gray-500' : 'bg-green-50 text-green-600'}`}>
+                                    {isHol || (isWeekend ? 'Weekend' : todaysSchedule.length > 0 ? 'Hari Masuk' : 'Tidak Ada Jadwal')}
+                                </span>
+                                {!isWeekend && !isHol && <span className="text-[10px] font-medium text-primary-500 bg-primary-50 px-2.5 py-1 rounded-full">{todaysSchedule.length} Sesi</span>}
+                            </div>
+                        </div>
+
+                        {/* Schedule list */}
                         {todaysSchedule.length > 0 ? (
-                            todaysSchedule.map((item, idx) => (
-                                <div
-                                    key={idx}
-                                    onClick={() => setDetailModal(item)}
-                                    className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm hover:border-blue-300 transition-all cursor-pointer group flex items-center gap-6"
-                                >
-                                    <div className="hidden sm:block text-center w-14 shrink-0">
-                                        <p className="text-xs font-bold text-slate-400">
-                                            {item.start_time?.substring(0, 5)}
-                                        </p>
-                                        <div className="h-4 w-px bg-slate-200 mx-auto my-1"></div>
-                                        <p className="text-xs font-bold text-slate-400">
-                                            {item.end_time?.substring(0, 5)}
-                                        </p>
+                            <div className="space-y-3">
+                                {todaysSchedule.map((item, idx) => (
+                                    <div key={idx} onClick={() => setDetailItem(item)} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-sm transition cursor-pointer group">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <h4 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition">{item.subject?.name || 'Mata Pelajaran'}</h4>
+                                            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">{item.room || 'Lab 1'}</span>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+                                                <span>{item.classroom?.name || item.teacher?.user?.name || 'Kelas'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <span>{item.start_time?.substring(0, 5)} — {item.end_time?.substring(0, 5)} WIB</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
+                                            <span className="text-[11px] text-gray-400">{item.session || `Sesi ${idx + 1}`}</span>
+                                            <span className="text-xs font-medium text-primary-500 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                                                Detail <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 text-left">
-                                        <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
-                                            {item.subject?.name}
-                                        </h4>
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-                                            {item.teacher?.user?.name} · Ruang{" "}
-                                            {item.room || "Utama"}
-                                        </p>
-                                    </div>
-                                    <svg
-                                        className="w-5 h-5 text-slate-200 group-hover:text-blue-600 transition-all"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={3}
-                                            d="M9 5l7 7-7 7"
-                                        />
-                                    </svg>
-                                </div>
-                            ))
+                                ))}
+                            </div>
                         ) : (
-                            <div className="md:col-span-2 bg-slate-50 border border-slate-100 border-dashed rounded-3xl p-12 text-center text-slate-400 font-medium">
-                                Tidak ada jadwal belajar.
+                            <div className="bg-white rounded-2xl border border-gray-100 border-dashed p-10 text-center">
+                                <svg className="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                                <p className="text-sm font-medium text-gray-600 mb-1">Tidak ada kelas</p>
+                                <p className="text-xs text-gray-400">{isWeekend ? 'Nikmati akhir pekanmu!' : isHol ? holidays[selectedDateKey] : 'Tidak ada jadwal hari ini.'}</p>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {detailModal && (
-                <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full scale-in-center overflow-hidden flex flex-col">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="font-bold text-slate-900 font-outfit uppercase">
-                                Detail Pembelajaran
-                            </h3>
-                            <button
-                                onClick={() => setDetailModal(null)}
-                                className="text-slate-300 hover:text-slate-900 transition-colors"
-                            >
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={3}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
+            {/* Detail Modal */}
+            <Modal open={!!detailItem} onClose={() => setDetailItem(null)} title="Detail Pembelajaran">
+                {detailItem && (
+                    <div className="p-6 space-y-5">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900">{detailItem.subject?.name}</h2>
+                            <p className="text-sm text-primary-500 font-medium mt-1">{detailItem.teacher?.user?.name || 'Guru'}</p>
                         </div>
-                        <div className="p-8 space-y-6 text-left">
-                            <div>
-                                <h4 className="text-2xl font-bold text-slate-900 font-outfit uppercase tracking-tight leading-tight">
-                                    {detailModal.subject?.name}
-                                </h4>
-                                <p className="text-blue-600 font-bold text-xs uppercase tracking-widest mt-2">
-                                    {detailModal.teacher?.user?.name}
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                                        Waktu
-                                    </p>
-                                    <p className="font-bold text-slate-800">
-                                        {detailModal.start_time?.substring(
-                                            0,
-                                            5,
-                                        )}{" "}
-                                        —{" "}
-                                        {detailModal.end_time?.substring(0, 5)}{" "}
-                                        WIB
-                                    </p>
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                { label: 'Waktu', value: `${detailItem.start_time?.substring(0, 5)} — ${detailItem.end_time?.substring(0, 5)} WIB` },
+                                { label: 'Ruangan', value: `Ruang ${detailItem.room || 'A01'}` },
+                                { label: 'Kelas', value: detailItem.classroom?.name || 'X RPL 1' },
+                                { label: 'Sesi', value: detailItem.session || 'Sesi 1' },
+                            ].map((info, i) => (
+                                <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">{info.label}</p>
+                                    <p className="text-sm font-semibold text-gray-900">{info.value}</p>
                                 </div>
-                                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                                        Ruangan
-                                    </p>
-                                    <p className="font-bold text-slate-800">
-                                        Ruang {detailModal.room || "A01"}
-                                    </p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                        <div className="p-6 border-t border-slate-50 bg-slate-50/50 flex justify-end">
-                            <button
-                                onClick={() => setDetailModal(null)}
-                                className="px-8 py-2.5 bg-slate-900 text-white font-bold text-xs uppercase rounded-lg shadow-lg shadow-slate-100 transition-all"
-                            >
-                                Tutup
-                            </button>
+                        <div className="flex justify-end">
+                            <button onClick={() => setDetailItem(null)} className="px-5 py-2 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition">Tutup</button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </Modal>
         </DashboardLayout>
     );
 }

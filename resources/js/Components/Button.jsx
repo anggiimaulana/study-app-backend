@@ -2,22 +2,23 @@ import React from 'react';
 
 export default function Button({ children, variant = 'primary', size = 'md', className = '', ...props }) {
     const variants = {
-        primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-600/20',
-        secondary: 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm',
-        success: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20',
-        danger: 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/20',
-        ghost: 'bg-transparent text-slate-500 hover:bg-slate-100',
+        primary: 'bg-primary-500 text-white hover:bg-primary-600',
+        secondary: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50',
+        success: 'bg-green-500 text-white hover:bg-green-600',
+        danger: 'bg-red-500 text-white hover:bg-red-600',
+        ghost: 'bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+        outline: 'bg-transparent text-primary-500 border border-primary-200 hover:bg-primary-50',
     };
 
     const sizes = {
         sm: 'px-3 py-1.5 text-xs',
-        md: 'px-6 py-2.5 text-sm',
-        lg: 'px-8 py-3.5 text-base',
+        md: 'px-4 py-2.5 text-sm',
+        lg: 'px-6 py-3 text-base',
     };
 
     return (
-        <button 
-            className={`inline-flex items-center justify-center font-bold rounded-xl transition-all active:scale-[0.98] shadow-md disabled:opacity-50 disabled:pointer-events-none ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
+        <button
+            className={`inline-flex items-center justify-center font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
             {...props}
         >
             {children}

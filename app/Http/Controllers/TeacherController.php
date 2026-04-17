@@ -56,9 +56,9 @@ class TeacherController extends Controller
             'exams' => $exams
         ]);
     }
-    public function teaching_schedule() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Jadwal Mengajar', 'role' => 'teacher']); }
-    public function student_evaluation() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Evaluasi Student', 'role' => 'teacher']); }
-    public function information() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Informasi & Pengumuman', 'role' => 'teacher']); }
-    public function myfess_moderation() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Moderasi MyFess', 'role' => 'teacher']); }
+    public function teaching_schedule() { return \Inertia\Inertia::render('Teacher/TeachingSchedule'); }
+    public function student_evaluation() { return \Inertia\Inertia::render('Teacher/StudentEvaluation'); }
+    public function information() { return \Inertia\Inertia::render('Teacher/Information'); }
+    public function myfess_moderation() { return \Inertia\Inertia::render('Teacher/MyfessModeration'); }
 }
 

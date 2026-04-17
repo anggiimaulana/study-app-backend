@@ -40,9 +40,9 @@ class SchoolAdminController extends Controller
             'teachers' => $teachers
         ]);
     }
-    public function cbt_management() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Manajemen Ujian CBT', 'role' => 'school-admin']); }
-    public function material() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Tugas & Materi', 'role' => 'school-admin']); }
-    public function incoming_complaint() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Laporan Aduan', 'role' => 'school-admin']); }
-    public function broadcast() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Sistem Pengumuman', 'role' => 'school-admin']); }
+    public function cbt_management() { return \Inertia\Inertia::render('SchoolAdmin/CbtManagement'); }
+    public function material() { return \Inertia\Inertia::render('SchoolAdmin/Material'); }
+    public function incoming_complaint() { return \Inertia\Inertia::render('SchoolAdmin/IncomingComplaint'); }
+    public function broadcast() { return \Inertia\Inertia::render('SchoolAdmin/Broadcast'); }
 }
 
