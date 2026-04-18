@@ -17,6 +17,41 @@ use App\Http\Controllers\ProfileController;
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/settings', function () { return \Inertia\Inertia::render('Settings/Index'); })->name('settings.index');
+
+    // === Inertia SPA – API endpoints (session-authenticated) ===
+    Route::prefix('api/v1')->group(function () {
+
+        // Student endpoints
+        Route::prefix('student')->group(function () {
+            Route::get('emotion-checkins', [\App\Http\Controllers\Api\Student\EmotionCheckinController::class, 'index']);
+            Route::post('emotion-checkins', [\App\Http\Controllers\Api\Student\EmotionCheckinController::class, 'store']);
+            Route::get('counselings', [\App\Http\Controllers\Api\Student\CounselingController::class, 'index']);
+            Route::post('counselings', [\App\Http\Controllers\Api\Student\CounselingController::class, 'store']);
+            Route::get('counselings/{counseling}', [\App\Http\Controllers\Api\Student\CounselingController::class, 'show']);
+            Route::put('counselings/{counseling}', [\App\Http\Controllers\Api\Student\CounselingController::class, 'update']);
+            Route::delete('counselings/{counseling}', [\App\Http\Controllers\Api\Student\CounselingController::class, 'destroy']);
+            Route::put('counselings/{counseling}/confirm', [\App\Http\Controllers\Api\Student\CounselingController::class, 'confirmCall']);
+            Route::put('counselings/{counseling}/reschedule', [\App\Http\Controllers\Api\Student\CounselingController::class, 'reschedule']);
+            Route::get('complaints', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'index']);
+            Route::post('complaints', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'store']);
+            Route::get('complaints/{complaint}', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'show']);
+            Route::delete('complaints/{complaint}', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'destroy']);
+        });
+
+        // Teacher endpoints
+        Route::prefix('teacher')->group(function () {
+            Route::get('counselings', [\App\Http\Controllers\Api\Teacher\CounselingController::class, 'index']);
+            Route::put('counselings/{counseling}', [\App\Http\Controllers\Api\Teacher\CounselingController::class, 'update']);
+        });
+
+        // School-admin endpoints
+        Route::prefix('school-admin')->group(function () {
+            Route::get('complaints', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'index']);
+            Route::get('complaints/{complaint}', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'show']);
+            Route::put('complaints/{complaint}/respond', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'respond']);
+            Route::delete('complaints/{complaint}', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'destroy']);
+        });
+    });
 });
 
 

@@ -79,7 +79,12 @@ class StudentController extends Controller
         ]);
     }
     public function jobs() { 
-        return \Inertia\Inertia::render('Student/Jobs'); 
+        $jobs = \App\Models\JobVacancy::where('school_id', Auth::user()->school_id)
+            ->latest()
+            ->paginate(8);
+        return \Inertia\Inertia::render('Student/Jobs', [
+            'jobs' => $jobs
+        ]); 
     }
     public function announcement() { 
         return \Inertia\Inertia::render('Student/Announcements'); 
@@ -91,8 +96,9 @@ class StudentController extends Controller
         if (!$student) abort(403);
         
         $complaints = Complaint::where('student_id', $student->id)
+            ->with('responder')
             ->latest()
-            ->paginate(10);
+            ->paginate(8);
             
         return \Inertia\Inertia::render('Student/Complaints', [
             'complaints' => $complaints

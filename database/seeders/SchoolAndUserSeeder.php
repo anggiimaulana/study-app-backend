@@ -36,8 +36,22 @@ class SchoolAndUserSeeder extends Seeder
         ]);
 
         $school->users()->create([
-            'name' => 'Budi Guru RPL',
+            'name' => 'Budi Guru RPL (Wali & BK)',
             'email' => 'guru@smk.id',
+            'password' => Hash::make('password'),
+            'role' => 'teacher'
+        ]);
+
+        $school->users()->create([
+            'name' => 'Siti Guru BKK',
+            'email' => 'bkk@smk.id',
+            'password' => Hash::make('password'),
+            'role' => 'teacher'
+        ]);
+
+        $school->users()->create([
+            'name' => 'Agus Guru Biasa',
+            'email' => 'gurubiasa@smk.id',
             'password' => Hash::make('password'),
             'role' => 'teacher'
         ]);

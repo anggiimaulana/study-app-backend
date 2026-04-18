@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
+import Pagination from '@/Components/ui/Pagination';
 
 export default function Jobs({ jobs }) {
     const [search, setSearch] = useState('');
@@ -10,11 +11,11 @@ export default function Jobs({ jobs }) {
     const dummyJobs = [
         { id: 1, title: 'Junior Web Developer', company: 'Global Tech', location: 'Jakarta', salary: 'Rp 5M - 8M', type: 'Magang', description: 'Kesempatan magang untuk siswa SMK jurusan RPL. Mengembangkan frontend dan backend.', requirements: ['Menguasai HTML, CSS, JavaScript', 'Familiar dengan framework React/Vue', 'Bisa bekerja dalam tim'], qualifications: ['Siswa kelas 11/12 SMK', 'Jurusan RPL/TKJ', 'IPK minimal 3.0'], benefits: ['Sertifikat', 'Uang saku harian', 'Mentoring senior developer'], deadline: '2026-05-01', posted_at: '2026-04-10', contact: 'hr@globaltech.co.id' },
         { id: 2, title: 'UI/UX Designer Trainee', company: 'Creative Studio', location: 'Bandung', salary: 'Kompetitif', type: 'Full-time', description: 'Belajar desain UI/UX di studio kreatif terkemuka bersama designer senior.', requirements: ['Familiar dengan Figma/Adobe XD', 'Memiliki sense of design yang baik', 'Portofolio diutamakan'], qualifications: ['Fresh graduate SMK/SMA', 'Tertarik bidang desain'], benefits: ['Gaji tetap', 'Training gratis', 'Lingkungan kerja kreatif'], deadline: '2026-04-30', posted_at: '2026-04-08', contact: 'jobs@creativestudio.id' },
-        { id: 3, title: 'Data Entry Intern', company: 'PT Maju Bersama', location: 'Surabaya', salary: 'Rp 2M - 3M', type: 'Magang', description: 'Posisi magang untuk pendataan administrasi dan pengarsipan dokumen digital.', requirements: ['Teliti dan rapih', 'Menguasai Microsoft Office'], qualifications: ['Siswa SMK semua jurusan'], benefits: ['Sertifikat magang', 'Uang transport'], deadline: '2026-05-15', posted_at: '2026-04-12', contact: 'recruitment@majubersama.co.id' },
-        { id: 4, title: 'Social Media Admin', company: 'Tokopedia', location: 'Jakarta', salary: 'Rp 4M - 6M', type: 'Part-time', description: 'Mengelola akun sosial media brand, membuat konten, dan engagement dengan audience.', requirements: ['Aktif di media sosial', 'Kreatif dalam membuat konten', 'Mengerti analitik sosmed'], qualifications: ['Siswa/mahasiswa', 'Domisili Jakarta'], benefits: ['Fleksibel WFH', 'Bonus performa', 'Free product'], deadline: '2026-04-28', posted_at: '2026-04-05', contact: 'talent@tokopedia.com' },
     ];
 
-    const displayJobs = jobs?.length > 0 ? jobs : dummyJobs;
+    const actualJobs = jobs?.data || [];
+    const displayJobs = actualJobs.length > 0 ? actualJobs : dummyJobs;
+    
     const types = ['all', ...new Set(displayJobs.map(j => j.type))];
     const filteredJobs = displayJobs.filter(j => {
         const ms = !search || j.title.toLowerCase().includes(search.toLowerCase()) || j.company.toLowerCase().includes(search.toLowerCase());
@@ -85,6 +86,7 @@ export default function Jobs({ jobs }) {
                         ))}
                     </div>
                 )}
+                <Pagination links={jobs?.links || []} />
             </div>
 
             {/* Job Detail Modal */}

@@ -59,6 +59,50 @@ class TeacherController extends Controller
     public function teaching_schedule() { return \Inertia\Inertia::render('Teacher/TeachingSchedule'); }
     public function student_evaluation() { return \Inertia\Inertia::render('Teacher/StudentEvaluation'); }
     public function information() { return \Inertia\Inertia::render('Teacher/Information'); }
-    public function myfess_moderation() { return \Inertia\Inertia::render('Teacher/MyfessModeration'); }
+    public function myfess_moderation() 
+    { 
+        $user = Auth::user();
+        $teacher = $user->teacher;
+        if (!$teacher) abort(403);
+
+        $schoolId = $user->school_id;
+
+        // 1. Self Check-ins
+        $myCheckins = \App\Models\EmotionCheckin::where('user_id', $user->id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        // 2. Counseling Requests
+        // If teacher is Guru BK, they see all 'bk' target_role in the school
+        // If teacher is Wali Kelas, they see 'wali_kelas' target_role for THEIR classroom students
+        
+        $isBK = in_array('Guru BK', $teacher->positions ?? []);
+        $classroomsLed = \App\Models\Classroom::where('homeroom_teacher_id', $teacher->id)->pluck('id');
+
+        $requests = \App\Models\Counseling::with(['student.user', 'student.classroom', 'preferredCounselor.user'])
+            ->where('school_id', $schoolId)
+            ->where(function($q) use ($isBK, $classroomsLed) {
+                if ($isBK) {
+                    $q->orWhere('target_role', 'bk');
+                }
+                if ($classroomsLed->isNotEmpty()) {
+                    $q->orWhere(function($sq) use ($classroomsLed) {
+                        $sq->where('target_role', 'wali_kelas')
+                           ->whereHas('student', function($ssq) use ($classroomsLed) {
+                               $ssq->whereIn('classroom_id', $classroomsLed);
+                           });
+                    });
+                }
+            })
+            ->latest()
+            ->get();
+
+        return \Inertia\Inertia::render('Teacher/MyfessModeration', [
+            'myCheckins' => $myCheckins,
+            'counselingRequests' => $requests,
+            'isBK' => $isBK
+        ]); 
+    }
 }
 
