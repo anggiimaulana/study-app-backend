@@ -40,9 +40,30 @@ class SchoolAdminController extends Controller
             'teachers' => $teachers
         ]);
     }
-    public function cbt_management() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Manajemen Ujian CBT', 'role' => 'school-admin']); }
-    public function material() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Tugas & Materi', 'role' => 'school-admin']); }
-    public function incoming_complaint() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Laporan Aduan', 'role' => 'school-admin']); }
-    public function broadcast() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Sistem Pengumuman', 'role' => 'school-admin']); }
+    public function cbt_management() { return \Inertia\Inertia::render('SchoolAdmin/CbtManagement'); }
+    public function material() { return \Inertia\Inertia::render('SchoolAdmin/Material'); }
+    public function incoming_complaint() 
+    { 
+        $schoolId = Auth::user()->school_id;
+        $query = Complaint::where('school_id', $schoolId)
+            ->where('target_role', 'school-admin');
+
+        $stats = [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('status', 'pending')->count(),
+            'processed' => (clone $query)->whereIn('status', ['dalam tinjauan', 'dalam proses'])->count(),
+            'resolved' => (clone $query)->where('status', 'selesai')->count(),
+        ];
+
+        $complaints = $query->with(['student.user', 'student.classroom', 'responder'])
+            ->latest()
+            ->paginate(8);
+
+        return \Inertia\Inertia::render('SchoolAdmin/IncomingComplaint', [
+            'complaints' => $complaints,
+            'stats' => $stats
+        ]); 
+    }
+    public function broadcast() { return \Inertia\Inertia::render('SchoolAdmin/Broadcast'); }
 }
 

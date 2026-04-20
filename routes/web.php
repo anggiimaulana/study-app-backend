@@ -12,9 +12,51 @@ use App\Http\Controllers\AcademicController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\GuidanceController;
+use App\Http\Controllers\ProfileController;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/settings', function () { return \Inertia\Inertia::render('Settings/Index'); })->name('settings.index');
+
+    // === Inertia SPA – API endpoints (session-authenticated) ===
+    Route::prefix('api/v1')->group(function () {
+
+        // Student endpoints
+        Route::prefix('student')->group(function () {
+            Route::get('emotion-checkins', [\App\Http\Controllers\Api\Student\EmotionCheckinController::class, 'index']);
+            Route::post('emotion-checkins', [\App\Http\Controllers\Api\Student\EmotionCheckinController::class, 'store']);
+            Route::get('counselings', [\App\Http\Controllers\Api\Student\CounselingController::class, 'index']);
+            Route::post('counselings', [\App\Http\Controllers\Api\Student\CounselingController::class, 'store']);
+            Route::get('counselings/{counseling}', [\App\Http\Controllers\Api\Student\CounselingController::class, 'show']);
+            Route::put('counselings/{counseling}', [\App\Http\Controllers\Api\Student\CounselingController::class, 'update']);
+            Route::delete('counselings/{counseling}', [\App\Http\Controllers\Api\Student\CounselingController::class, 'destroy']);
+            Route::put('counselings/{counseling}/confirm', [\App\Http\Controllers\Api\Student\CounselingController::class, 'confirmCall']);
+            Route::put('counselings/{counseling}/reschedule', [\App\Http\Controllers\Api\Student\CounselingController::class, 'reschedule']);
+            Route::get('complaints', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'index']);
+            Route::post('complaints', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'store']);
+            Route::get('complaints/{complaint}', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'show']);
+            Route::delete('complaints/{complaint}', [\App\Http\Controllers\Api\Student\ComplaintController::class, 'destroy']);
+        });
+
+        // Teacher endpoints
+        Route::prefix('teacher')->group(function () {
+            Route::get('counselings', [\App\Http\Controllers\Api\Teacher\CounselingController::class, 'index']);
+            Route::put('counselings/{counseling}', [\App\Http\Controllers\Api\Teacher\CounselingController::class, 'update']);
+        });
+
+        // School-admin endpoints
+        Route::prefix('school-admin')->group(function () {
+            Route::get('complaints', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'index']);
+            Route::get('complaints/{complaint}', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'show']);
+            Route::put('complaints/{complaint}/respond', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'respond']);
+            Route::delete('complaints/{complaint}', [\App\Http\Controllers\Api\SchoolAdmin\ComplaintController::class, 'destroy']);
+        });
+    });
+});
+
 
 Route::get('/', function () {
-    return redirect('/login');
+    return \Inertia\Inertia::render('Landing');
 });
 
 Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
@@ -70,15 +112,15 @@ Route::get('/guidance/dashboard', [GuidanceController::class, 'index'])->name('g
 });
 
 Route::middleware('role:super-admin')->group(function () {
-        Route::get('/super-admin/dashboard', [SuperAdminController::class, 'index'])->name('super_admin.dashboard');
-        Route::get('/super-admin/schools', [SuperAdminController::class, 'schools'])->name('super_admin.schools');
-        Route::get('/super-admin/billing', [SuperAdminController::class, 'billing'])->name('super_admin.billing');
-        Route::get('/super-admin/monitoring', [SuperAdminController::class, 'monitoring'])->name('super_admin.monitoring');
-        Route::get('/super-admin/settings', [SuperAdminController::class, 'settings'])->name('super_admin.settings');
+        Route::get('/super-admin/dashboard', [SuperAdminController::class, 'index'])->name('super-admin.dashboard');
+        Route::get('/super-admin/schools', [SuperAdminController::class, 'schools'])->name('super-admin.schools');
+        Route::get('/super-admin/billing', [SuperAdminController::class, 'billing'])->name('super-admin.billing');
+        Route::get('/super-admin/monitoring', [SuperAdminController::class, 'monitoring'])->name('super-admin.monitoring');
+        Route::get('/super-admin/settings', [SuperAdminController::class, 'settings'])->name('super-admin.settings');
 });
 
 Route::middleware('role:school-admin')->group(function () {
-Route::get('/admin/dashboard', [SchoolAdminController::class, 'index'])->name('school-admin.dashboard');
+Route::get('/school-admin/dashboard', [SchoolAdminController::class, 'index'])->name('school-admin.dashboard');
         Route::get('/school-admin/master-data', [\App\Http\Controllers\SchoolAdminController::class, 'master_data'])->name('school-admin.master-data');
         Route::get('/school-admin/cbt-management', [\App\Http\Controllers\SchoolAdminController::class, 'cbt_management'])->name('school-admin.cbt-management');
         Route::get('/school-admin/material', [\App\Http\Controllers\SchoolAdminController::class, 'material'])->name('school-admin.material');
@@ -97,12 +139,14 @@ Route::get('/teacher/dashboard', [TeacherController::class, 'index'])->name('tea
 });
 
 Route::middleware('role:student')->group(function () {
-Route::get('/student/dashboard', [StudentController::class, 'index'])->name('student.dashboard');
-        Route::get('/student/task-exam', [\App\Http\Controllers\StudentController::class, 'task_exam'])->name('student.task-exam');
-        Route::get('/student/class-schedule', [\App\Http\Controllers\StudentController::class, 'class_schedule'])->name('student.class-schedule');
-        Route::get('/student/study-result', [\App\Http\Controllers\StudentController::class, 'study_result'])->name('student.study-result');
-        Route::get('/student/myfess', [\App\Http\Controllers\StudentController::class, 'myfess'])->name('student.myfess');
-        Route::get('/student/jobs', [\App\Http\Controllers\StudentController::class, 'jobs'])->name('student.jobs');
-        Route::get('/student/announcement', [\App\Http\Controllers\StudentController::class, 'announcement'])->name('student.announcement');
-        Route::get('/student/my-complaint', [\App\Http\Controllers\StudentController::class, 'my_complaint'])->name('student.my-complaint');
+    Route::get('/student/dashboard', [StudentController::class, 'index'])->name('student.dashboard');
+    Route::get('/student/task-exam', [\App\Http\Controllers\StudentController::class, 'task_exam'])->name('student.task-exam');
+    Route::get('/student/class-schedule', [\App\Http\Controllers\StudentController::class, 'class_schedule'])->name('student.class-schedule');
+    Route::get('/student/study-result', [\App\Http\Controllers\StudentController::class, 'study_result'])->name('student.study-result');
+    Route::get('/student/myfess', [\App\Http\Controllers\StudentController::class, 'myfess'])->name('student.myfess');
+    Route::get('/student/jobs', [\App\Http\Controllers\StudentController::class, 'jobs'])->name('student.jobs');
+    Route::get('/student/announcement', [\App\Http\Controllers\StudentController::class, 'announcement'])->name('student.announcement');
+    Route::get('/student/my-complaint', [\App\Http\Controllers\StudentController::class, 'my_complaint'])->name('student.my-complaint');
+    Route::get('/student/notifications', [\App\Http\Controllers\StudentController::class, 'notifications'])->name('student.notifications');
+    Route::get('/student/profile', [ProfileController::class, 'index'])->name('student.profile');
 });

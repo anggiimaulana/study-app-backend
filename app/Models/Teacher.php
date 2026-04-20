@@ -10,7 +10,11 @@ class Teacher extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'school_id', 'nip', 'nuptk', 'phone', 'address', 'gender'
+        'user_id', 'school_id', 'nip', 'nuptk', 'phone', 'address', 'gender', 'positions'
+    ];
+
+    protected $casts = [
+        'positions' => 'array',
     ];
 
     public function user()

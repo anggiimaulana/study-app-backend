@@ -51,7 +51,7 @@ class WebAuthController extends Controller
     private function redirectBasedOnRole($role)
     {
         if ($role === 'super-admin') {
-            return redirect()->route('super_admin.dashboard');
+            return redirect()->route('super-admin.dashboard');
         } elseif ($role === 'school-admin') {
             return redirect()->route('school-admin.dashboard');
         } elseif ($role === 'teacher') {

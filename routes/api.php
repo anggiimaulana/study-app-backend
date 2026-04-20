@@ -29,13 +29,12 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('tasks', TaskController::class);
         Route::apiResource('attendances', AttendanceController::class);
         Route::apiResource('cbt', CbtController::class);
-        Route::apiResource('myfess', MyfessController::class);
         Route::apiResource('jobs', JobController::class);
         Route::apiResource('library', LibraryController::class);
         Route::apiResource('payments', PaymentController::class);
-        Route::apiResource('complaints', ComplaintController::class);
         Route::apiResource('announcements', AnnouncementController::class);
         Route::apiResource('classrooms', ClassroomController::class);
         Route::apiResource('task-submissions', TaskSubmissionController::class);
+
     });
 });

@@ -60,7 +60,10 @@ class StudentController extends Controller
             'schedules' => $schedules
         ]);
     }
-    public function study_result() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Hasil Studi', 'role' => 'student']); }
+    public function study_result() { 
+        return \Inertia\Inertia::render('GenericPage', ['title' => 'Hasil Studi', 'role' => 'student']); 
+    }
+
     public function myfess()
     {
         $student = Auth::user()->student;
@@ -75,20 +78,35 @@ class StudentController extends Controller
             'posts' => $posts
         ]);
     }
-    public function jobs() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Portal Loker', 'role' => 'student']); }
-    public function announcement() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Pengumuman', 'role' => 'student']); }
+    public function jobs() { 
+        $jobs = \App\Models\JobVacancy::where('school_id', Auth::user()->school_id)
+            ->latest()
+            ->paginate(8);
+        return \Inertia\Inertia::render('Student/Jobs', [
+            'jobs' => $jobs
+        ]); 
+    }
+    public function announcement() { 
+        return \Inertia\Inertia::render('Student/Announcements'); 
+    }
+
     public function my_complaint()
     {
         $student = Auth::user()->student;
         if (!$student) abort(403);
         
         $complaints = Complaint::where('student_id', $student->id)
+            ->with('responder')
             ->latest()
-            ->paginate(10);
+            ->paginate(8);
             
         return \Inertia\Inertia::render('Student/Complaints', [
             'complaints' => $complaints
         ]);
+    }
+    
+    public function notifications() {
+        return \Inertia\Inertia::render('Student/Notifications');
     }
 }
 

@@ -27,9 +27,9 @@ class SuperAdminController extends Controller
         return \Inertia\Inertia::render('SuperAdmin/Schools', ['schools' => $schools]); 
     }
     
-    public function billing() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Billing & SaaS', 'role' => 'super-admin']); }
-    public function monitoring() { return \Inertia\Inertia::render('GenericPage', ['title' => 'System Monitoring', 'role' => 'super-admin']); }
-    public function settings() { return \Inertia\Inertia::render('GenericPage', ['title' => 'Platform Settings', 'role' => 'super-admin']); }
+    public function billing() { return \Inertia\Inertia::render('SuperAdmin/Billing'); }
+    public function monitoring() { return \Inertia\Inertia::render('SuperAdmin/Monitoring'); }
+    public function settings() { return \Inertia\Inertia::render('SuperAdmin/Settings'); }
 
 
 }

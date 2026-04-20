@@ -33,4 +33,9 @@ class Student extends Model
         return $this->belongsTo(Classroom::class, 'classroom_id');
     }
 
+    public function emotionCheckins()
+    {
+        return $this->hasMany(EmotionCheckin::class);
+    }
+
 }

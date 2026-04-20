@@ -18,7 +18,7 @@ class AcademicSeeder extends Seeder
     public function run(): void
     {
         $school = School::first();
-        $guruUser = User::where('role', 'teacher')->first();
+        $teachersUsers = User::where('role', 'teacher')->orderBy('id')->get();
         $siswaUser = User::where('role', 'student')->first();
 
         $year = AcademicYear::create([
@@ -31,12 +31,31 @@ class AcademicSeeder extends Seeder
         $majorRpl = Major::create(['school_id' => $school->id, 'code' => 'RPL', 'name' => 'Rekayasa Perangkat Lunak']);
         Major::create(['school_id' => $school->id, 'code' => 'TKJ', 'name' => 'Teknik Komputer Jaringan']);
 
-        $teacher = Teacher::create([
-            'user_id' => $guruUser->id,
+        $teacher1 = Teacher::create([
+            'user_id' => $teachersUsers[0]->id,
             'school_id' => $school->id,
             'nip' => '198001012005011003',
             'gender' => 'L',
+            'positions' => ['wali_kelas', 'bk'],
         ]);
+
+        $teacher2 = Teacher::create([
+            'user_id' => $teachersUsers[1]->id,
+            'school_id' => $school->id,
+            'nip' => '198001012005011004',
+            'gender' => 'P',
+            'positions' => ['bkk'],
+        ]);
+
+        $teacher3 = Teacher::create([
+            'user_id' => $teachersUsers[2]->id,
+            'school_id' => $school->id,
+            'nip' => '198001012005011005',
+            'gender' => 'L',
+            'positions' => [],
+        ]);
+
+        $teacher = $teacher1; // Alias for classroom creation
 
         $classroom = Classroom::create([
             'school_id' => $school->id,

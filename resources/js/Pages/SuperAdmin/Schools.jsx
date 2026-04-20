@@ -1,72 +1,104 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head } from '@inertiajs/react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import Badge from '@/Components/Badge';
-import Button from '@/Components/Button';
+import Modal from '@/Components/ui/Modal';
 
 export default function Schools({ schools }) {
+    const [modalOpen, setModalOpen] = useState(false);
+    const dummySchools = [
+        { id: 1, name: 'SMK Negeri 1 Jakarta', address: 'Jl. Jend. Sudirman No. 1', students_count: 850, teachers_count: 45, status: 'active' },
+        { id: 2, name: 'SMA Harapan Bangsa', address: 'Jl. Pendidikan No. 12, Bandung', students_count: 620, teachers_count: 32, status: 'active' },
+        { id: 3, name: 'SMK Tekno Mandiri', address: 'Jl. Industri No. 8, Surabaya', students_count: 430, teachers_count: 25, status: 'trial' },
+    ];
+    const items = schools?.data && schools.data.length > 0 ? schools.data : dummySchools;
+
     return (
-        <DashboardLayout headerTitle="Manajemen Seluruh Sekolah">
-            <Head title="School Management" />
-
-            <div className="mb-8 flex justify-between items-center px-2">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-800 font-outfit">Database Sekolah Terintegrasi</h2>
-                    <p className="text-slate-500 text-sm mt-1">Pantau dan kelola seluruh instansi pendidikan yang menggunakan platform.</p>
+        <DashboardLayout headerTitle="Kelola Sekolah">
+            <Head title="Kelola Sekolah" />
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">Database Sekolah</h2>
+                            <p className="text-sm text-gray-500">Kelola seluruh instansi pendidikan yang terdaftar.</p>
+                        </div>
+                    </div>
+                    <button onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-xl transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        Daftarkan Sekolah
+                    </button>
                 </div>
-                <Button>Daftarkan Sekolah Baru</Button>
-            </div>
 
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                            <tr>
-                                <th className="px-8 py-5">Identitas Sekolah</th>
-                                <th className="px-6 py-5">Statistik Pengguna</th>
-                                <th className="px-6 py-5">Paket Layanan</th>
-                                <th className="px-6 py-5">Status</th>
-                                <th className="px-8 py-5 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {schools.data.map((school) => (
-                                <tr key={school.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold font-outfit text-xl shadow-lg shadow-blue-600/20">
-                                                {school.name?.substring(0, 1)}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors uppercase font-outfit">{school.name}</span>
-                                                <span className="text-xs text-slate-400 font-bold">{school.address || 'Alamat belum disetel'}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-6 font-medium text-slate-600">
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-bold text-slate-700">{school.students_count || 0} Murid</span>
-                                            <span className="text-xs text-slate-500">{school.teachers_count || 0} Guru</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-6">
-                                         <Badge variant="indigo">ENTERPRISE</Badge>
-                                    </td>
-                                    <td className="px-6 py-6 text-slate-500">
-                                        <Badge variant={school.status === 'active' ? 'success' : 'danger'}>
-                                            {school.status?.toUpperCase() || 'ACTIVE'}
-                                        </Badge>
-                                    </td>
-                                    <td className="px-8 py-6 text-right space-x-2">
-                                        <Button size="sm" variant="secondary">Kelola</Button>
-                                        <Button size="sm" variant="ghost" className="text-red-500 hover:bg-red-50">Suspend</Button>
-                                    </td>
+                {/* Table */}
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-gray-50">
+                                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Sekolah</th>
+                                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pengguna</th>
+                                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Paket</th>
+                                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                                    <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Aksi</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {items.map(school => (
+                                    <tr key={school.id} className="border-b border-gray-50 hover:bg-gray-50 transition group">
+                                        <td className="px-5 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">{school.name?.substring(0, 1)}</div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">{school.name}</p>
+                                                    <p className="text-xs text-gray-400">{school.address || 'Alamat belum disetel'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <p className="text-sm font-medium text-gray-700">{school.students_count || 0} Siswa</p>
+                                            <p className="text-xs text-gray-400">{school.teachers_count || 0} Guru</p>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <span className="text-[11px] font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100">ENTERPRISE</span>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border ${school.status === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${school.status === 'active' ? 'bg-green-500' : 'bg-amber-500'}`} />
+                                                {school.status === 'active' ? 'Aktif' : 'Trial'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-4 text-right space-x-2">
+                                            <button className="px-3 py-1.5 text-xs font-medium bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition">Kelola</button>
+                                            <button className="px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition">Suspend</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
+            <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Daftarkan Sekolah Baru" maxWidth="max-w-xl">
+                <form className="p-6 space-y-4" onSubmit={e => { e.preventDefault(); setModalOpen(false); if (window.AppAlert) window.AppAlert.toast('success', 'Sekolah berhasil didaftarkan!'); }}>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Nama Sekolah</label>
+                        <input className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all" placeholder="Masukkan nama sekolah..." />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Alamat</label>
+                        <textarea rows={2} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all resize-none" placeholder="Alamat lengkap..." />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition">Batal</button>
+                        <button type="submit" className="px-4 py-2 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition">Daftarkan</button>
+                    </div>
+                </form>
+            </Modal>
         </DashboardLayout>
     );
 }
