@@ -6,14 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEmotionCheckinRequest;
 use App\Services\EmotionCheckinService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class EmotionCheckinController extends Controller
 {
     protected EmotionCheckinService $service;
 
-    public function index(): JsonResponse
+    public function __construct(EmotionCheckinService $service)
     {
-        $student = auth()->user()->student;
+        $this->service = $service;
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (!$student) {
+            return response()->json(['message' => 'Student not found.'], 404);
+        }
+
         $cacheKey = "student_{$student->id}_checkin_history";
 
         $history = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addDay(), function () use ($student) {
@@ -26,7 +37,7 @@ class EmotionCheckinController extends Controller
     public function store(StoreEmotionCheckinRequest $request): JsonResponse
     {
         $student = $request->user()->student;
-        
+
         if (!$student) {
             return response()->json(['message' => 'Student not found.'], 404);
         }

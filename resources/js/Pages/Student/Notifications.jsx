@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Head } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
+import Modal from "@/Components/ui/Modal";
 
 const formatDateTime = (value) => {
     if (!value) return "-";
@@ -222,40 +223,18 @@ export default function Notifications() {
                 </div>
             </div>
 
-            {selectedNotification && (
-                <div className="fixed inset-0 z-195 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="w-full max-w-2xl rounded-4xl bg-white shadow-2xl shadow-slate-900/10 overflow-hidden">
-                        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-                            <div>
-                                <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-400">
-                                    Detail Notifikasi
-                                </p>
-                                <h3 className="text-2xl font-black text-slate-900 font-outfit">
-                                    {selectedNotification.title}
-                                </h3>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setSelectedNotification(null)}
-                                className="text-slate-400 hover:text-slate-900 transition-colors"
-                            >
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2.5}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-5">
+            <Modal
+                open={!!selectedNotification}
+                onClose={() => setSelectedNotification(null)}
+                title="Detail Notifikasi"
+                maxWidth="max-w-2xl"
+            >
+                {selectedNotification && (
+                    <>
+                        <div className="space-y-5">
+                            <h3 className="text-2xl font-black text-slate-900 font-outfit">
+                                {selectedNotification.title}
+                            </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4">
                                     <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-400">
@@ -322,9 +301,9 @@ export default function Notifications() {
                                 )}
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </Modal>
         </DashboardLayout>
     );
 }

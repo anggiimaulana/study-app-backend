@@ -23,16 +23,12 @@ class CounselingController extends Controller
         $student = $request->user()->student;
         if (!$student) return response()->json(['data' => []], 403);
 
-        $cacheKey = "student_{$student->id}_counselings";
-
-        $counselings = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(1), function () use ($student) {
-            return Counseling::with('counselor.user')
-                ->where('student_id', $student->id)
-                ->latest()
-                ->get()
-                ->values()
-                ->all();
-        });
+        $counselings = Counseling::with('counselor.user')
+            ->where('student_id', $student->id)
+            ->latest()
+            ->get()
+            ->values()
+            ->all();
 
         return response()->json(['data' => $counselings]);
     }
