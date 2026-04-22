@@ -112,7 +112,7 @@ export default function Jobs({ jobs }) {
                             <h2 className="text-lg font-semibold text-gray-900">
                                 Bursa Kerja
                             </h2>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-base text-gray-500">
                                 Peluang karir, magang, dan lowongan eksklusif
                                 dari BKK sekolah.
                             </p>
@@ -121,7 +121,7 @@ export default function Jobs({ jobs }) {
                 </div>
 
                 {/* Search + Filter */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col sm:flex-row items-center gap-3">
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col sm:flex-row items-center gap-3">
                     <div className="relative flex-1 w-full">
                         <svg
                             className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
@@ -137,7 +137,7 @@ export default function Jobs({ jobs }) {
                             />
                         </svg>
                         <input
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all placeholder:text-gray-400"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-base outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all placeholder:text-gray-400"
                             placeholder="Cari posisi atau perusahaan..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -148,7 +148,7 @@ export default function Jobs({ jobs }) {
                             <button
                                 key={type}
                                 onClick={() => setFilter(type)}
-                                className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${filter === type ? "bg-primary-500 text-white border-primary-500" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}
+                                className={`px-3.5 py-2 rounded-lg text-base  border transition-all ${filter === type ? "bg-primary-500 text-white border-primary-500" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}
                             >
                                 {type === "all" ? "Semua" : type}
                             </button>
@@ -172,10 +172,10 @@ export default function Jobs({ jobs }) {
                                 d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z"
                             />
                         </svg>
-                        <p className="text-sm font-medium text-gray-600">
+                        <p className="text-base  text-gray-600">
                             Tidak ada lowongan
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-base text-gray-400 mt-1">
                             Coba ubah kata kunci pencarian atau filter Anda.
                         </p>
                     </div>
@@ -188,25 +188,25 @@ export default function Jobs({ jobs }) {
                                 className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition cursor-pointer group"
                             >
                                 <div className="flex items-start justify-between mb-3">
-                                    <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-sm font-bold text-primary-600">
+                                    <div className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-base font-bold text-primary-600">
                                         {job.company?.substring(0, 2)}
                                     </div>
                                     <span
-                                        className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${typeColors[job.type] || "bg-gray-50 text-gray-600 border-gray-100"}`}
+                                        className={`text-sm px-2.5 py-1 rounded-full border ${typeColors[job.type] || "bg-gray-50 text-gray-600 border-gray-100"}`}
                                     >
                                         {job.type}
                                     </span>
                                 </div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-primary-600 transition">
                                     {job.title}
                                 </h3>
-                                <p className="text-xs text-primary-500 font-medium mb-2">
+                                <p className="text-base text-primary-500 mb-2">
                                     {job.company}
                                 </p>
-                                <p className="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
+                                <p className="text-base text-gray-500 line-clamp-2 mb-3 leading-relaxed">
                                     {job.description}
                                 </p>
-                                <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+                                <div className="pt-3 border-t border-gray-50 flex items-center justify-between text-base text-gray-400">
                                     <div className="flex items-center gap-3">
                                         <span className="flex items-center gap-1">
                                             <svg
@@ -230,11 +230,11 @@ export default function Jobs({ jobs }) {
                                             </svg>
                                             {job.location}
                                         </span>
-                                        <span className="font-medium text-gray-600">
+                                        <span className=" text-gray-600">
                                             {job.salary}
                                         </span>
                                     </div>
-                                    <span className="text-primary-500 font-medium group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
+                                    <span className="text-primary-500 text-sm  group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1">
                                         Detail{" "}
                                         <svg
                                             className="w-3 h-3"
@@ -277,10 +277,10 @@ export default function Jobs({ jobs }) {
                                     <h2 className="text-xl font-semibold text-gray-900">
                                         {detailJob.title}
                                     </h2>
-                                    <p className="text-sm text-primary-500 font-medium">
+                                    <p className="text-base text-primary-500 ">
                                         {detailJob.company}
                                     </p>
-                                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                    <div className="flex items-center gap-3 mt-2 text-base text-gray-500">
                                         <span className="flex items-center gap-1">
                                             <svg
                                                 className="w-3.5 h-3.5"
@@ -303,11 +303,11 @@ export default function Jobs({ jobs }) {
                                             </svg>
                                             {detailJob.location}
                                         </span>
-                                        <span className="font-medium text-gray-700">
+                                        <span className=" text-gray-700">
                                             {detailJob.salary}
                                         </span>
                                         <span
-                                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${typeColors[detailJob.type] || ""}`}
+                                            className={`text-sm px-2 py-0.5 rounded-full border ${typeColors[detailJob.type] || ""}`}
                                         >
                                             {detailJob.type}
                                         </span>
@@ -317,11 +317,11 @@ export default function Jobs({ jobs }) {
 
                             {/* Description */}
                             <div>
-                                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                                <h4 className="text-base font-semibold text-gray-900 mb-2">
                                     Deskripsi Pekerjaan
                                 </h4>
                                 <div className="h-px bg-gray-100 mb-3" />
-                                <p className="text-sm text-gray-600 leading-relaxed">
+                                <p className="text-base text-gray-600 leading-relaxed">
                                     {detailJob.description}
                                 </p>
                             </div>
@@ -329,7 +329,7 @@ export default function Jobs({ jobs }) {
                             {/* Requirements */}
                             {detailJob.requirements?.length > 0 && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                                    <h4 className="text-base font-semibold text-gray-900 mb-2">
                                         Persyaratan
                                     </h4>
                                     <div className="h-px bg-gray-100 mb-3" />
@@ -337,7 +337,7 @@ export default function Jobs({ jobs }) {
                                         {detailJob.requirements.map((r, i) => (
                                             <li
                                                 key={i}
-                                                className="text-sm text-gray-600 flex items-start gap-2"
+                                                className="text-base text-gray-600 flex items-start gap-2"
                                             >
                                                 <svg
                                                     className="w-4 h-4 text-primary-400 shrink-0 mt-0.5"
@@ -360,7 +360,7 @@ export default function Jobs({ jobs }) {
                             {/* Qualifications */}
                             {detailJob.qualifications?.length > 0 && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                                    <h4 className="text-base font-semibold text-gray-900 mb-2">
                                         Kualifikasi
                                     </h4>
                                     <div className="h-px bg-gray-100 mb-3" />
@@ -369,7 +369,7 @@ export default function Jobs({ jobs }) {
                                             (q, i) => (
                                                 <span
                                                     key={i}
-                                                    className="text-xs bg-gray-50 text-gray-600 px-3 py-1.5 rounded-full border border-gray-100"
+                                                    className="text-base bg-gray-50 text-gray-600 px-3 py-1.5 rounded-full border border-gray-100"
                                                 >
                                                     {q}
                                                 </span>
@@ -382,7 +382,7 @@ export default function Jobs({ jobs }) {
                             {/* Benefits */}
                             {detailJob.benefits?.length > 0 && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                                    <h4 className="text-base font-semibold text-gray-900 mb-2">
                                         Benefit
                                     </h4>
                                     <div className="h-px bg-gray-100 mb-3" />
@@ -390,7 +390,7 @@ export default function Jobs({ jobs }) {
                                         {detailJob.benefits.map((b, i) => (
                                             <span
                                                 key={i}
-                                                className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-full border border-green-100"
+                                                className="text-base bg-green-50 text-green-600 px-3 py-1.5 rounded-full border border-green-100"
                                             >
                                                 {b}
                                             </span>
@@ -402,10 +402,10 @@ export default function Jobs({ jobs }) {
                             {/* Meta */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">
+                                    <p className="text-sm tracking-wide mb-1">
                                         Deadline
                                     </p>
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-base font-semibold text-gray-900">
                                         {detailJob.deadline
                                             ? new Date(
                                                   detailJob.deadline,
@@ -418,10 +418,10 @@ export default function Jobs({ jobs }) {
                                     </p>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1">
+                                    <p className="text-sm tracking-wide mb-1">
                                         Kontak
                                     </p>
-                                    <p className="text-sm font-semibold text-primary-600">
+                                    <p className="text-base font-semibold text-primary-600">
                                         {detailJob.contact || "-"}
                                     </p>
                                 </div>
@@ -430,11 +430,11 @@ export default function Jobs({ jobs }) {
                         <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                             <button
                                 onClick={() => setDetailJob(null)}
-                                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+                                className="px-4 py-2 text-base  transition bg-red-500 text-white hover:bg-red-600 rounded-xl"
                             >
                                 Tutup
                             </button>
-                            <button className="px-5 py-2.5 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition flex items-center gap-2">
+                            <button className="px-5 py-2.5 text-base font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition flex items-center gap-2">
                                 <svg
                                     className="w-4 h-4"
                                     fill="none"

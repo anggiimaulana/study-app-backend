@@ -58,23 +58,31 @@ const COUNSELING_REASONS = [
 ];
 
 const fmtDate = (v) =>
-    v
-        ? new Date(v).toLocaleDateString("id-ID", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-          })
-        : "-";
+    (() => {
+        if (!v) return "-";
+        const d = new Date(v);
+        if (Number.isNaN(d.getTime())) return "-";
+        return d.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+    })();
 const fmtDateTime = (v) =>
-    v
-        ? new Date(v).toLocaleDateString("id-ID", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-          }) + " WIB"
-        : "-";
+    (() => {
+        if (!v) return "-";
+        const d = new Date(v);
+        if (Number.isNaN(d.getTime())) return "-";
+        return (
+            d.toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            }) + " WIB"
+        );
+    })();
 
 const statusStyles = {
     pending: {
@@ -118,9 +126,8 @@ const StatusBadge = ({ status }) => {
     const s = statusStyles[status] || statusStyles["pending"];
     return (
         <span
-            className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${s.bg} ${s.text} border ${s.border}`}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${s.bg} ${s.text} border ${s.border}`}
         >
-            <span className={`w-1 h-1 rounded-full ${s.dot}`} />
             {s.label}
         </span>
     );
@@ -128,7 +135,6 @@ const StatusBadge = ({ status }) => {
 
 // ─── Main ───────────────────────────────────────────────────────────
 export default function MyFess() {
-    const { auth } = usePage().props;
     const [activeTab, setActiveTab] = useState("checkin");
     const [counselings, setCounselings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -164,17 +170,14 @@ export default function MyFess() {
         {
             key: "checkin",
             label: "Check-in & Refleksi",
-            icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
         },
         {
             key: "counseling",
             label: "Konseling",
-            icon: "M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155",
         },
         {
             key: "panggilan",
             label: "Panggilan",
-            icon: "M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0",
         },
     ];
 
@@ -182,7 +185,7 @@ export default function MyFess() {
         <DashboardLayout headerTitle="MyFess">
             <Head title="MyFess" />
             <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
                             <svg
@@ -200,41 +203,24 @@ export default function MyFess() {
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-gray-900 leading-tight">
-                                MyFess — Ruang Aman Siswa
+                            <h2 className="text-lg font-semibold text-gray-900 leading-tight">
+                                My Confess - Ruang Aman Siswa
                             </h2>
-                            <p className="text-xs text-gray-400">
+                            <p className="text-base text-gray-500">
                                 Cerita harimu, ajukan konseling, dan cek jadwal
                                 panggilan BK.
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
+                    <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 shrink-0">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
-                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab.key ? "bg-primary-500 text-white shadow-md" : "text-gray-400 hover:text-gray-600"}`}
+                                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.key ? "bg-primary-500 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
                             >
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={
-                                            activeTab === tab.key ? 2 : 1.5
-                                        }
-                                        d={tab.icon}
-                                    />
-                                </svg>
-                                <span className="hidden sm:inline lowercase first-letter:uppercase">
-                                    {tab.label}
-                                </span>
+                                {tab.label}
                             </button>
                         ))}
                     </div>
@@ -271,13 +257,80 @@ function CheckinTab() {
     const [reflection, setReflection] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [history, setHistory] = useState([]);
+    const emotionCount = EMOTIONS.length;
+
+    const getCheckinPayload = (item) => {
+        if (!item || typeof item !== "object") return {};
+        if (item.attributes && typeof item.attributes === "object") {
+            return item.attributes;
+        }
+        if (item.data && typeof item.data === "object") {
+            return item.data;
+        }
+        return item;
+    };
+
+    const resolveCheckinId = (item, idx) => {
+        const payload = getCheckinPayload(item);
+        return item?.id ?? payload?.id ?? `history-${idx}`;
+    };
+
+    const resolveCheckinMood = (item) => {
+        const payload = getCheckinPayload(item);
+        return (
+            payload?.mood ??
+            payload?.current_condition ??
+            payload?.emotion ??
+            payload?.status ??
+            ""
+        );
+    };
+
+    const resolveCheckinDate = (item) => {
+        const payload = getCheckinPayload(item);
+        const raw =
+            payload?.created_at ??
+            payload?.createdAt ??
+            payload?.date ??
+            payload?.checkin_date ??
+            payload?.checked_at ??
+            payload?.timestamp ??
+            null;
+
+        if (raw && typeof raw === "object") {
+            return raw.date ?? raw.datetime ?? raw.iso ?? raw.value ?? null;
+        }
+
+        return raw;
+    };
+
+    const resolveCheckinStory = (item) => {
+        const payload = getCheckinPayload(item);
+        const raw =
+            payload?.story ??
+            payload?.reflection ??
+            payload?.notes ??
+            payload?.experienced_event ??
+            payload?.current_condition_desc ??
+            payload?.current_condition ??
+            "";
+        const text = String(raw ?? "").trim();
+        return text || "Tanpa cerita...";
+    };
 
     const fetchHistory = async () => {
         try {
             const res = await window.axios.get(
                 "/api/v1/student/emotion-checkins",
             );
-            setHistory(res.data.data || []);
+            const payload =
+                res?.data?.data ?? res?.data?.history ?? res?.data ?? [];
+            const list = Array.isArray(payload)
+                ? payload
+                : Array.isArray(payload?.data)
+                  ? payload.data
+                  : [];
+            setHistory(list);
         } catch (e) {
             console.error(e);
         }
@@ -317,49 +370,62 @@ function CheckinTab() {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-3">
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                    <h3 className="text-sm font-bold text-gray-900 mb-1">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
                         Hai {auth.user.name.split(" ")[0]}, apa kabarmu hari
                         ini?
                     </h3>
-                    <p className="text-[11px] text-gray-400 mb-6 uppercase tracking-wider">
+                    <p className="text-base text-gray-500 mb-6">
                         Bagikan kondisimu untuk mendapatkan dukungan yang tepat.
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-5 gap-3">
-                            {EMOTIONS.map((em) => (
-                                <button
-                                    key={em.id}
-                                    type="button"
-                                    onClick={() => setEmotion(em.id)}
-                                    className={`flex flex-col items-center p-3 rounded-2xl border-2 transition-all ${emotion === em.id ? "scale-105" : "border-gray-50 hover:border-gray-200"}`}
-                                    style={
-                                        emotion === em.id
-                                            ? {
-                                                  background: em.bg,
-                                                  borderColor: em.color,
-                                                  boxShadow: `0 8px 20px ${em.color}30`,
-                                              }
-                                            : {}
-                                    }
-                                >
-                                    <span className="text-2xl mb-1">
-                                        {em.icon}
-                                    </span>
-                                    <span
-                                        className="text-[10px] font-bold"
-                                        style={{
-                                            color:
-                                                emotion === em.id
-                                                    ? em.color
-                                                    : "#94a3b8",
-                                        }}
+                        <div className="grid grid-cols-2 sm:grid-cols-6 md:grid-cols-6 lg:grid-cols-5 gap-3">
+                            {EMOTIONS.map((em, idx) => {
+                                const isSecondLast = idx === emotionCount - 2;
+                                const isLast = idx === emotionCount - 1;
+                                const hasTwoItemsOnLastRow =
+                                    emotionCount % 3 === 2;
+                                const centeredRemainderClass =
+                                    hasTwoItemsOnLastRow && isSecondLast
+                                        ? "sm:col-start-2 md:col-start-2"
+                                        : hasTwoItemsOnLastRow && isLast
+                                          ? "sm:col-start-4 md:col-start-4"
+                                          : "";
+
+                                return (
+                                    <button
+                                        key={em.id}
+                                        type="button"
+                                        onClick={() => setEmotion(em.id)}
+                                        className={`sm:col-span-2 md:col-span-2 lg:col-span-1 flex flex-col items-center p-3 rounded-xl border transition-all ${emotion === em.id ? "scale-[1.02]" : "border-gray-200 hover:border-gray-300 bg-gray-50/60"} ${centeredRemainderClass}`}
+                                        style={
+                                            emotion === em.id
+                                                ? {
+                                                      background: em.bg,
+                                                      borderColor: em.color,
+                                                      boxShadow: `0 6px 18px ${em.color}26`,
+                                                  }
+                                                : {}
+                                        }
                                     >
-                                        {em.label}
-                                    </span>
-                                </button>
-                            ))}
+                                        <span className="text-2xl mb-1.5">
+                                            {em.icon}
+                                        </span>
+                                        <span
+                                            className="text-sm font-medium"
+                                            style={{
+                                                color:
+                                                    emotion === em.id
+                                                        ? em.color
+                                                        : "#94a3b8",
+                                            }}
+                                        >
+                                            {em.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                         <textarea
                             value={reflection}
@@ -368,12 +434,12 @@ function CheckinTab() {
                             minLength={25}
                             maxLength={750}
                             placeholder="Ceritakan apa yang ada di pikiranmu (min. 25 karakter)..."
-                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm focus:bg-white focus:ring-4 focus:ring-primary-100 focus:border-primary-400 outline-none transition-all resize-none leading-relaxed"
+                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base focus:bg-white focus:ring-2 focus:ring-primary-100 focus:border-primary-400 outline-none transition-all resize-none leading-relaxed"
                         />
                         <button
                             type="submit"
                             disabled={!emotion || submitting}
-                            className="w-full py-3 bg-primary-500 text-white font-bold text-sm rounded-xl hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-200"
+                            className="w-full py-3 bg-primary-500 text-white font-semibold text-base rounded-xl hover:bg-primary-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {submitting ? "Menyimpan..." : "Simpan Refleksi"}
                         </button>
@@ -381,8 +447,8 @@ function CheckinTab() {
                 </div>
             </div>
             <div className="lg:col-span-2">
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col h-full">
-                    <h3 className="text-sm font-bold text-gray-900 mb-4">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col h-full">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
                         Riwayat Check-in
                     </h3>
                     {history.length === 0 ? (
@@ -390,7 +456,7 @@ function CheckinTab() {
                             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3 text-2xl">
                                 😴
                             </div>
-                            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-widest">
+                            <p className="text-sm font-medium text-gray-400">
                                 Belum ada riwayat
                             </p>
                         </div>
@@ -398,14 +464,18 @@ function CheckinTab() {
                         <div className="space-y-3">
                             {(Array.isArray(history) ? history : []).map(
                                 (item, idx) => {
+                                    const mood = resolveCheckinMood(item);
                                     const emo =
-                                        EMOTIONS.find(
-                                            (e) => e.id === item.mood,
-                                        ) || EMOTIONS[0];
+                                        EMOTIONS.find((e) => e.id === mood) ||
+                                        EMOTIONS[0];
+                                    const checkinDate =
+                                        resolveCheckinDate(item);
+                                    const checkinStory =
+                                        resolveCheckinStory(item);
                                     return (
                                         <div
-                                            key={item.id || `history-${idx}`}
-                                            className="p-3.5 rounded-2xl border border-gray-50 bg-gray-50/50 flex items-center gap-3.5 hover:bg-white hover:border-gray-100 transition-all cursor-default group"
+                                            key={resolveCheckinId(item, idx)}
+                                            className="p-3.5 rounded-xl border border-gray-100 bg-gray-50/70 flex items-center gap-3.5 hover:bg-white hover:border-gray-200 transition-all cursor-default group"
                                         >
                                             <div
                                                 className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm border border-white"
@@ -415,24 +485,15 @@ function CheckinTab() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-0.5">
-                                                    <h4 className="text-[12px] font-bold text-gray-900 group-hover:text-primary-600 transition-colors uppercase tracking-tight">
+                                                    <h4 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
                                                         {emo.label}
                                                     </h4>
-                                                    <span className="text-[9px] font-bold text-gray-300 uppercase">
-                                                        {new Date(
-                                                            item.created_at,
-                                                        ).toLocaleDateString(
-                                                            "id-ID",
-                                                            {
-                                                                day: "numeric",
-                                                                month: "short",
-                                                            },
-                                                        )}
+                                                    <span className="text-xs font-medium text-gray-400">
+                                                        {fmtDate(checkinDate)}
                                                     </span>
                                                 </div>
-                                                <p className="text-[11px] text-gray-400 line-clamp-1 italic">
-                                                    {item.story ||
-                                                        "Tanpa cerita..."}
+                                                <p className="text-sm text-gray-500 line-clamp-1 italic">
+                                                    {checkinStory}
                                                 </p>
                                             </div>
                                         </div>
@@ -464,7 +525,6 @@ function CounselingTab({ items, refresh, loading }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Extra validation
         if (form.issue_description.length < 25) {
             window.AppAlert?.toast(
                 "warning",
@@ -475,7 +535,7 @@ function CounselingTab({ items, refresh, loading }) {
 
         if (form.preferred_date) {
             const date = new Date(form.preferred_date);
-            const day = date.getDay(); // 0 = Sun, 6 = Sat
+            const day = date.getDay();
             if (day === 0 || day === 6) {
                 window.AppAlert?.toast(
                     "error",
@@ -486,7 +546,7 @@ function CounselingTab({ items, refresh, loading }) {
         }
 
         if (form.preferred_time) {
-            const [hours, minutes] = form.preferred_time.split(":").map(Number);
+            const [hours] = form.preferred_time.split(":").map(Number);
             if (hours < 8 || hours >= 15) {
                 window.AppAlert?.toast(
                     "error",
@@ -525,7 +585,7 @@ function CounselingTab({ items, refresh, loading }) {
 
     const handleDelete = async (id) => {
         const r = await window.Swal?.fire({
-            title: "Batalkan?",
+            title: "Batalkan pengajuan?",
             text: "Pengajuan akan dihapus.",
             icon: "warning",
             showCancelButton: true,
@@ -540,12 +600,12 @@ function CounselingTab({ items, refresh, loading }) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    {items.length} Pengajuan Menunggu
+                <h3 className="text-base font-semibold text-gray-900">
+                    {items.length} pengajuan menunggu
                 </h3>
                 <button
                     onClick={() => setShowForm(true)}
-                    className="px-5 py-2 bg-primary-500 text-white text-[11px] font-bold rounded-xl hover:bg-primary-600 transition flex items-center gap-2 shadow-lg shadow-primary-200 uppercase tracking-wide"
+                    className="px-4 py-2 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition flex items-center gap-2"
                 >
                     <svg
                         className="w-3.5 h-3.5"
@@ -560,253 +620,400 @@ function CounselingTab({ items, refresh, loading }) {
                             d="M12 4.5v15m7.5-7.5h-15"
                         />
                     </svg>
-                    Ajukan Baru
+                    Ajukan baru
                 </button>
             </div>
 
             {loading ? (
                 <div className="py-20 text-center animate-pulse text-gray-400">
-                    Loading data...
+                    Memuat data...
                 </div>
             ) : items.length === 0 ? (
-                <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center">
-                    <p className="text-xs text-gray-400">
+                <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-14 text-center">
+                    <p className="text-base text-gray-500">
                         Belum ada pengajuan aktif.
                     </p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {items.map((item, idx) => (
                         <div
                             key={item.id || `counseling-${idx}`}
-                            className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:-translate-y-0.5 transition-all cursor-pointer group"
+                            className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition-all cursor-pointer group"
                             onClick={() => setDetailItem(item)}
                         >
                             <div className="flex justify-between items-start mb-3">
                                 <StatusBadge status={item.status} />
                                 <span
-                                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${item.urgency_level === "urgen" ? "bg-red-50 text-red-600 border-red-100" : "bg-gray-50 text-gray-500 border-gray-100 uppercase"}`}
+                                    className={`text-xs font-medium px-2 py-1 rounded-full border ${item.urgency_level === "urgen" ? "bg-red-50 text-red-600 border-red-100" : "bg-gray-50 text-gray-500 border-gray-100"}`}
                                 >
                                     {item.urgency_level}
                                 </span>
                             </div>
-                            <h4 className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
+                            <h4 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
                                 {item.reason || "Sesi Konseling"}
                             </h4>
-                            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1">
-                                Tujuan:{" "}
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                                Target{" "}
                                 {item.target_role === "bk"
                                     ? "Guru BK"
                                     : "Wali Kelas"}
                             </p>
-                            <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed italic">
-                                "{item.issue_description}"
+                            <p className="text-base text-gray-600 mt-2.5 line-clamp-2 leading-relaxed">
+                                {item.issue_description}
                             </p>
                             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
-                                <span className="text-[10px] text-gray-400 font-medium">
+                                <span className="text-sm text-gray-500 font-medium">
                                     {fmtDate(item.created_at)}
                                 </span>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(item.id);
-                                        }}
-                                        className="p-1 px-2 text-[10px] font-bold text-red-500 hover:bg-red-50 rounded transition"
-                                    >
-                                        BATAL
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(item.id);
+                                    }}
+                                    className="px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-lg transition"
+                                >
+                                    Batalkan
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Request Modal */}
             <Modal
                 open={showForm}
                 onClose={() => setShowForm(false)}
-                title="Formulir Konseling"
+                title="Pengajuan konseling"
             >
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">
-                                Target Konseling
-                            </label>
-                            <select
-                                value={form.target_role}
-                                onChange={(e) =>
-                                    setForm((f) => ({
-                                        ...f,
-                                        target_role: e.target.value,
-                                    }))
-                                }
-                                className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
-                            >
-                                <option value="wali_kelas">Wali Kelas</option>
-                                <option value="bk">Guru BK</option>
-                            </select>
+                <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    <p className="text-sm text-gray-400">
+                        Isi formulir berikut untuk mengajukan sesi konseling.
+                    </p>
+
+                    <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
+                            Preferensi sesi
+                        </h4>
+                        <div className="h-px bg-gray-100 mb-3" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-500">
+                                    Target konseling
+                                </label>
+                                <select
+                                    value={form.target_role}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            target_role: e.target.value,
+                                        }))
+                                    }
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
+                                >
+                                    <option value="wali_kelas">
+                                        Wali Kelas
+                                    </option>
+                                    <option value="bk">Guru BK</option>
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-500">
+                                    Tingkat urgensi
+                                </label>
+                                <select
+                                    value={form.urgency_level}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            urgency_level: e.target.value,
+                                        }))
+                                    }
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
+                                >
+                                    <option value="rendah">Rendah</option>
+                                    <option value="sedang">Sedang</option>
+                                    <option value="mendesak">Mendesak</option>
+                                    <option value="urgen">Sangat urgen</option>
+                                </select>
+                            </div>
                         </div>
+                    </div>
+
+                    <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
+                            Topik konseling
+                        </h4>
+                        <div className="h-px bg-gray-100 mb-3" />
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">
-                                Urgensi
+                            <label className="text-sm font-medium text-gray-500">
+                                Topik utama
                             </label>
                             <select
-                                value={form.urgency_level}
+                                value={form.reason}
                                 onChange={(e) =>
                                     setForm((f) => ({
                                         ...f,
-                                        urgency_level: e.target.value,
+                                        reason: e.target.value,
                                     }))
                                 }
-                                className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
+                                required
+                                className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
                             >
-                                <option value="rendah">Rendah</option>
-                                <option value="sedang">Sedang</option>
-                                <option value="mendesak">Mendesak</option>
-                                <option value="urgen">Sangat Urgen</option>
+                                <option value="">Pilih topik...</option>
+                                {COUNSELING_REASONS.map((r) => (
+                                    <option key={r} value={r}>
+                                        {r}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">
-                            Topik Utama
-                        </label>
-                        <select
-                            value={form.reason}
-                            onChange={(e) =>
-                                setForm((f) => ({
-                                    ...f,
-                                    reason: e.target.value,
-                                }))
-                            }
-                            required
-                            className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
+
+                    <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
+                            Waktu yang diinginkan
+                        </h4>
+                        <div className="h-px bg-gray-100 mb-3" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-500">
+                                    Rencana tanggal (opsional)
+                                </label>
+                                <input
+                                    type="date"
+                                    value={form.preferred_date}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            preferred_date: e.target.value,
+                                        }))
+                                    }
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-500">
+                                    Rencana jam (opsional)
+                                </label>
+                                <input
+                                    type="time"
+                                    value={form.preferred_time}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            preferred_time: e.target.value,
+                                        }))
+                                    }
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
+                            Ceritamu
+                        </h4>
+                        <div className="h-px bg-gray-100 mb-3" />
+                        <div className="space-y-1.5 pb-2">
+                            <label className="text-sm font-medium text-gray-500">
+                                Deskripsi masalah
+                            </label>
+                            <textarea
+                                value={form.issue_description}
+                                onChange={(e) =>
+                                    setForm((f) => ({
+                                        ...f,
+                                        issue_description: e.target.value,
+                                    }))
+                                }
+                                rows={6}
+                                minLength={25}
+                                maxLength={750}
+                                placeholder="Ceritakan apa yang sedang kamu alami agar kami bisa membantu lebih baik (min. 25 karakter)..."
+                                className="w-full rounded-xl border border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none px-4 py-3 resize-none leading-relaxed"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
+                        <button
+                            type="button"
+                            onClick={() => setShowForm(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
                         >
-                            <option value="">Pilih topik...</option>
-                            {COUNSELING_REASONS.map((r) => (
-                                <option key={r} value={r}>
-                                    {r}
-                                </option>
-                            ))}
-                        </select>
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="px-5 py-2.5 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition disabled:opacity-50"
+                        >
+                            {submitting ? "Mengirim..." : "Kirim pengajuan"}
+                        </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">
-                                Rencana Tanggal (Opsional)
-                            </label>
-                            <input
-                                type="date"
-                                value={form.preferred_date}
-                                onChange={(e) =>
-                                    setForm((f) => ({
-                                        ...f,
-                                        preferred_date: e.target.value,
-                                    }))
-                                }
-                                className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">
-                                Rencana Jam (Opsional)
-                            </label>
-                            <input
-                                type="time"
-                                value={form.preferred_time}
-                                onChange={(e) =>
-                                    setForm((f) => ({
-                                        ...f,
-                                        preferred_time: e.target.value,
-                                    }))
-                                }
-                                className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-1.5 pb-6">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">
-                            Deskripsi Masalah
-                        </label>
-                        <textarea
-                            value={form.issue_description}
-                            onChange={(e) =>
-                                setForm((f) => ({
-                                    ...f,
-                                    issue_description: e.target.value,
-                                }))
-                            }
-                            rows={6}
-                            minLength={25}
-                            maxLength={750}
-                            placeholder="Ceritakan apa yang sedang kamu alami agar kami bisa membantu lebih baik (min. 25 karakter)..."
-                            className="w-full rounded-2xl border border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none p-5 resize-none leading-relaxed shadow-inner"
-                            required
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={submitting}
-                        className="w-full py-3 bg-primary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-100 disabled:opacity-50"
-                    >
-                        AJUKAN KONSULTASI
-                    </button>
                 </form>
             </Modal>
 
-            {/* Detail Modal */}
             <Modal
                 open={!!detailItem}
                 onClose={() => setDetailItem(null)}
-                title="Detail Pengajuan"
+                title="Detail pengajuan"
             >
                 {detailItem && (
                     <div className="p-6 space-y-5">
-                        <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                            <div className="flex items-center justify-between mb-4">
-                                <StatusBadge status={detailItem.status} />
-                                <span className="text-[10px] text-gray-400">
-                                    {fmtDate(detailItem.created_at)}
-                                </span>
+                        <p className="text-sm text-gray-400">
+                            Pengajuan dibuat {fmtDate(detailItem.created_at)}
+                        </p>
+
+                        <div>
+                            <h2 className="text-xl font-semibold text-primary-600 mb-3">
+                                {detailItem.reason || "Sesi konseling"}
+                            </h2>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M9 12.75l2.25 2.25L15 9.75"
+                                            />
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <StatusBadge status={detailItem.status} />
+                                </div>
+
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span className="text-base text-gray-700">
+                                        Target{" "}
+                                        {detailItem.target_role === "bk"
+                                            ? "Guru BK"
+                                            : "Wali Kelas"}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M8.25 6.75h7.5M8.25 12h7.5m-7.5 5.25h4.5"
+                                            />
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M19.5 14.25v-8.625a2.625 2.625 0 00-2.625-2.625h-9.75A2.625 2.625 0 004.5 5.625v12.75A2.625 2.625 0 007.125 21h5.625"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span className="text-base text-gray-700">
+                                        Urgensi{" "}
+                                        {detailItem.urgency_level || "rendah"}
+                                    </span>
+                                </div>
                             </div>
-                            <h4 className="text-sm font-bold text-gray-900 mb-1">
-                                {detailItem.reason}
+                        </div>
+
+                        <div>
+                            <h4 className="text-base font-semibold text-gray-900 mb-2">
+                                Deskripsi masalah
                             </h4>
-                            <p className="text-xs text-gray-500 leading-relaxed">
+                            <div className="h-px bg-gray-100 mb-3" />
+                            <p className="text-base text-gray-600 leading-relaxed">
                                 {detailItem.issue_description}
                             </p>
                         </div>
+
                         {detailItem.requested_date && (
-                            <div className="flex items-center gap-2 p-3 rounded-xl bg-primary-50 text-primary-700">
-                                <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
-                                <span className="text-xs font-bold uppercase tracking-tight">
-                                    Rencana:{" "}
-                                    {fmtDateTime(detailItem.requested_date)}
-                                </span>
+                            <div>
+                                <h4 className="text-base font-semibold text-gray-900 mb-2">
+                                    Rencana waktu
+                                </h4>
+                                <div className="h-px bg-gray-100 mb-3" />
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span className="text-base text-gray-700">
+                                        {fmtDateTime(detailItem.requested_date)}
+                                    </span>
+                                </div>
                             </div>
                         )}
-                        <div className="flex justify-end pt-4">
+
+                        <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                             <button
                                 onClick={() => setDetailItem(null)}
-                                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold rounded-xl"
+                                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
                             >
-                                TUTUP
+                                Tutup
                             </button>
+                            {detailItem.status === "pending" ? (
+                                <button
+                                    onClick={async () => {
+                                        await handleDelete(detailItem.id);
+                                        setDetailItem(null);
+                                    }}
+                                    className="px-5 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 transition"
+                                >
+                                    Batalkan pengajuan
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => setDetailItem(null)}
+                                    className="px-5 py-2.5 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition"
+                                >
+                                    Oke, mengerti
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
@@ -860,37 +1067,36 @@ function PanggilanTab({ items, refresh, loading }) {
 
     return (
         <div className="space-y-4">
-            <h3 className="text-xs font-bold text-gray-400 px-1 uppercase tracking-widest">
-                {items.length} Panggilan Aktif
+            <h3 className="text-base font-semibold text-gray-900 px-1">
+                {items.length} panggilan aktif
             </h3>
             {loading ? (
                 <div className="py-20 text-center text-gray-400">
-                    Loading calls...
+                    Memuat panggilan...
                 </div>
             ) : items.length === 0 ? (
-                <div className="bg-white rounded-3xl border border-dashed border-gray-200 p-16 text-center">
-                    <p className="text-xs text-gray-400">
+                <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-14 text-center">
+                    <p className="text-base text-gray-500">
                         Tidak ada panggilan konseling saat ini.
                     </p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {items.map((item, idx) => (
                         <div
                             key={item.id || `call-${idx}`}
-                            className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden relative group"
+                            className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition-all cursor-pointer overflow-hidden relative group"
                             onClick={() => setDetailCall(item)}
                         >
-                            {/* Accent line */}
                             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-500" />
 
                             <div className="flex justify-between items-start mb-4">
                                 <div className="space-y-1">
-                                    <h4 className="text-base font-bold text-gray-900 group-hover:text-primary-600 transition-colors uppercase tracking-tight">
+                                    <h4 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
                                         {item.reason || "Sesi Konseling"}
                                     </h4>
-                                    <p className="text-xs text-gray-400 font-medium tracking-tight">
-                                        Oleh:{" "}
+                                    <p className="text-sm text-gray-500 font-medium">
+                                        Oleh{" "}
                                         {item.counselor?.user?.name ||
                                             "Wali Kelas/BK"}
                                     </p>
@@ -913,7 +1119,7 @@ function PanggilanTab({ items, refresh, loading }) {
                                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                         />
                                     </svg>
-                                    <span className="text-[11px] font-bold text-gray-700">
+                                    <span className="text-sm font-medium text-gray-700">
                                         {fmtDate(
                                             item.schedule_date ||
                                                 item.requested_date,
@@ -934,7 +1140,7 @@ function PanggilanTab({ items, refresh, loading }) {
                                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                         />
                                     </svg>
-                                    <span className="text-[11px] font-bold text-gray-700">
+                                    <span className="text-sm font-medium text-gray-700">
                                         {new Date(
                                             item.schedule_date ||
                                                 item.requested_date,
@@ -947,11 +1153,11 @@ function PanggilanTab({ items, refresh, loading }) {
                                 </div>
                             </div>
 
-                            <div className="mt-6 flex justify-between items-center bg-gray-50/50 -mx-6 -mb-6 px-6 py-3 border-t border-gray-100">
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                            <div className="mt-5 flex justify-between items-center bg-gray-50/50 -mx-5 -mb-5 px-5 py-3 border-t border-gray-100">
+                                <span className="text-sm text-gray-500 font-medium">
                                     {item.student_confirmation === "ready"
-                                        ? "Sudah Konfirmasi"
-                                        : "Perlu Konfirmasi"}
+                                        ? "Sudah konfirmasi"
+                                        : "Perlu konfirmasi"}
                                 </span>
                                 <svg
                                     className="w-4 h-4 text-gray-300 group-hover:text-primary-400 transform group-hover:translate-x-1 transition-all"
@@ -972,83 +1178,126 @@ function PanggilanTab({ items, refresh, loading }) {
                 </div>
             )}
 
-            {/* Call Detail Modal */}
             <Modal
                 open={!!detailCall}
                 onClose={() => setDetailCall(null)}
-                title="Detail Panggilan"
+                title="Detail panggilan"
             >
                 {detailCall && (
-                    <div className="p-6 space-y-6">
-                        <div className="flex flex-col items-center text-center space-y-2 mb-2">
-                            <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 mb-2">
-                                <svg
-                                    className="w-8 h-8"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={1.5}
-                                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
-                                    />
-                                </svg>
+                    <div className="p-6 space-y-5">
+                        <p className="text-sm text-gray-400">
+                            Panggilan konseling ·{" "}
+                            {fmtDate(
+                                detailCall.schedule_date ||
+                                    detailCall.requested_date,
+                            )}
+                        </p>
+
+                        <div>
+                            <h2 className="text-xl font-semibold text-primary-600 mb-3">
+                                {detailCall.reason || "Sesi konseling"}
+                            </h2>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span className="text-base text-gray-700">
+                                        Konselor{" "}
+                                        {detailCall.counselor?.user?.name ||
+                                            "Wali Kelas/BK"}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span className="text-base text-gray-700">
+                                        {fmtDateTime(
+                                            detailCall.schedule_date ||
+                                                detailCall.requested_date,
+                                        )}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                                        <svg
+                                            className="w-3.5 h-3.5 text-primary-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={1.5}
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M9 12.75l2.25 2.25L15 9.75"
+                                            />
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <span
+                                        className={`text-sm font-medium px-2.5 py-1 rounded-full ${detailCall.student_confirmation === "ready" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
+                                    >
+                                        {detailCall.student_confirmation ===
+                                        "ready"
+                                            ? "Sudah konfirmasi"
+                                            : "Menunggu konfirmasi"}
+                                    </span>
+                                </div>
                             </div>
-                            <h4 className="text-lg font-bold text-gray-900">
-                                {detailCall.reason}
-                            </h4>
-                            <p className="text-sm text-gray-400 font-medium">
-                                Ruang Konseling BK / Wali Kelas
-                            </p>
                         </div>
 
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                                <span className="text-xs font-bold text-gray-400 uppercase">
-                                    Waktu Sesi
-                                </span>
-                                <span className="text-xs font-bold text-gray-900">
-                                    {fmtDateTime(
-                                        detailCall.schedule_date ||
-                                            detailCall.requested_date,
-                                    )}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                                <span className="text-xs font-bold text-gray-400 uppercase">
-                                    Status Siswa
-                                </span>
-                                <span
-                                    className={`text-[10px] font-bold px-2 py-0.5 rounded ${detailCall.student_confirmation === "ready" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}
-                                >
-                                    {detailCall.student_confirmation === "ready"
-                                        ? "SIAP HADIR"
-                                        : "MENUNGGU KONFIRMASI"}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                             <button
                                 onClick={() => setShowReschedule(true)}
-                                className="py-3 px-4 border-2 border-gray-100 text-gray-600 font-bold text-xs rounded-2xl hover:bg-gray-50 transition"
+                                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition"
                             >
-                                AJUKAN JADWAL LAIN
+                                Ajukan jadwal lain
                             </button>
-                            {detailCall.student_confirmation !== "ready" && (
+                            {detailCall.student_confirmation !== "ready" ? (
                                 <button
                                     onClick={() => handleConfirm(detailCall.id)}
-                                    className="py-3 px-4 bg-primary-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-primary-200 transition active:scale-95"
+                                    className="px-5 py-2.5 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 transition"
                                 >
-                                    SAYA BISA HADIR
+                                    Saya bisa hadir
+                                </button>
+                            ) : (
+                                <button
+                                    disabled
+                                    className="px-5 py-2.5 bg-green-100 text-green-700 text-sm font-semibold rounded-xl"
+                                >
+                                    Sudah dikonfirmasi
                                 </button>
                             )}
                         </div>
@@ -1056,66 +1305,73 @@ function PanggilanTab({ items, refresh, loading }) {
                 )}
             </Modal>
 
-            {/* Reschedule Modal */}
             <Modal
                 open={showReschedule}
                 onClose={() => setShowReschedule(false)}
-                title="Ajukan Reschedule"
+                title="Ajukan jadwal baru"
             >
-                <form onSubmit={handleReschedule} className="p-6 space-y-4">
-                    <p className="text-[11px] text-gray-500 font-medium italic underline decoration-primary-200 underline-offset-4">
+                <form onSubmit={handleReschedule} className="p-6 space-y-5">
+                    <p className="text-sm text-gray-500 font-medium">
                         Pilih waktu baru yang memungkinkan bagi Anda.
                     </p>
-                    <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">
-                                Tanggal Baru
-                            </label>
-                            <input
-                                type="date"
-                                required
-                                value={resForm.preferred_date}
-                                onChange={(e) =>
-                                    setResForm((f) => ({
-                                        ...f,
-                                        preferred_date: e.target.value,
-                                    }))
-                                }
-                                className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">
-                                Jam Baru
-                            </label>
-                            <input
-                                type="time"
-                                required
-                                value={resForm.preferred_time}
-                                onChange={(e) =>
-                                    setResForm((f) => ({
-                                        ...f,
-                                        preferred_time: e.target.value,
-                                    }))
-                                }
-                                className="w-full rounded-xl border-gray-100 bg-gray-50 text-sm focus:bg-white outline-none py-3 px-4"
-                            />
+
+                    <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
+                            Pilihan waktu
+                        </h4>
+                        <div className="h-px bg-gray-100 mb-3" />
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-500">
+                                    Tanggal baru
+                                </label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={resForm.preferred_date}
+                                    onChange={(e) =>
+                                        setResForm((f) => ({
+                                            ...f,
+                                            preferred_date: e.target.value,
+                                        }))
+                                    }
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-500">
+                                    Jam baru
+                                </label>
+                                <input
+                                    type="time"
+                                    required
+                                    value={resForm.preferred_time}
+                                    onChange={(e) =>
+                                        setResForm((f) => ({
+                                            ...f,
+                                            preferred_time: e.target.value,
+                                        }))
+                                    }
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 text-base focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none py-3 px-4"
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div className="flex gap-3 pt-2">
+
+                    <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                         <button
                             type="button"
                             onClick={() => setShowReschedule(false)}
-                            className="flex-1 py-3 text-sm font-bold text-gray-400"
+                            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
                         >
-                            BATAL
+                            Batal
                         </button>
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="flex-2 py-3 bg-primary-600 text-white font-bold rounded-2xl shadow-lg shadow-primary-200"
+                            className="px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition disabled:opacity-50"
                         >
-                            KIRIM PERMINTAAN
+                            {submitting ? "Mengirim..." : "Kirim permintaan"}
                         </button>
                     </div>
                 </form>

@@ -156,7 +156,7 @@ export default function Tasks({ tasks }) {
                             <h2 className="text-lg font-semibold text-gray-900">
                                 Daftar Aktivitas
                             </h2>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-base text-gray-500">
                                 Kelola tugas mandiri, ujian, dan latihan Anda.
                             </p>
                         </div>
@@ -170,7 +170,7 @@ export default function Tasks({ tasks }) {
                             <button
                                 key={f.key}
                                 onClick={() => setFilter(f.key)}
-                                className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${filter === f.key ? "bg-primary-500 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === f.key ? "bg-primary-500 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
                             >
                                 {f.label}
                             </button>
@@ -196,10 +196,10 @@ export default function Tasks({ tasks }) {
                                 />
                             </svg>
                         </div>
-                        <p className="text-sm font-medium text-gray-700">
+                        <p className="text-base font-medium text-gray-700">
                             Tidak ada tugas
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-sm text-gray-400 mt-1">
                             Coba ubah filter untuk melihat tugas lainnya.
                         </p>
                     </div>
@@ -222,13 +222,13 @@ export default function Tasks({ tasks }) {
                                     <div className="p-5 flex-1">
                                         <div className="flex justify-between items-start mb-3">
                                             <span
-                                                className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${tc.bg} ${tc.text} border ${tc.border}`}
+                                                className={`text-sm px-2.5 py-1 rounded-full ${tc.bg} ${tc.text} border ${tc.border}`}
                                             >
                                                 {tc.label}
                                             </span>
                                             <div className="text-right">
                                                 <span
-                                                    className={`text-xs ${isPast ? "text-red-500 font-medium" : "text-gray-400"}`}
+                                                    className={`text-sm ${isPast ? "text-red-500 font-medium" : "text-gray-400"}`}
                                                 >
                                                     {new Date(
                                                         task.due_date,
@@ -240,7 +240,7 @@ export default function Tasks({ tasks }) {
                                                         },
                                                     )}
                                                 </span>
-                                                <p className="text-[10px] text-gray-400">
+                                                <p className="text-[12px] text-gray-400">
                                                     {new Date(
                                                         task.due_date,
                                                     ).toLocaleTimeString(
@@ -255,24 +255,24 @@ export default function Tasks({ tasks }) {
                                             </div>
                                         </div>
 
-                                        <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition">
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition">
                                             {task.title}
                                         </h3>
-                                        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-4">
+                                        <p className="text-base text-gray-500 leading-relaxed line-clamp-2 mb-4">
                                             {task.description}
                                         </p>
 
                                         <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs font-medium text-primary-600">
+                                                <p className="text-base font-medium text-primary-600">
                                                     {task.subject?.name}
                                                 </p>
-                                                <p className="text-[11px] text-gray-400">
+                                                <p className="text-base text-gray-500">
                                                     {task.teacher?.user?.name}
                                                 </p>
                                             </div>
                                             <span
-                                                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full ${isSubmitted ? "bg-green-50 text-green-600" : isPast ? "bg-red-50 text-red-500" : "bg-gray-50 text-gray-500"}`}
+                                                className={`inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-full ${isSubmitted ? "bg-green-50 text-green-600" : isPast ? "bg-red-50 text-red-500" : "bg-gray-50 text-gray-500"}`}
                                             >
                                                 <span
                                                     className={`w-1.5 h-1.5 rounded-full ${isSubmitted ? "bg-green-500" : isPast ? "bg-red-500" : "bg-gray-300"}`}
@@ -325,7 +325,7 @@ function TaskDetailModal({ task, onClose }) {
             maxWidth="max-w-2xl"
         >
             <div className="space-y-5">
-                <p className="text-xs text-gray-400">
+                <p className="text-sm text-gray-400">
                     Sesi {task.session || "—"} ·{" "}
                     {task.category || task.subject?.name} (
                     {task.courseCode || "—"})
@@ -366,7 +366,7 @@ function TaskDetailModal({ task, onClose }) {
                                         />
                                     </svg>
                                 </div>
-                                <span className="text-sm text-gray-700">
+                                <span className="text-base text-gray-700">
                                     {item.text}
                                 </span>
                             </div>
@@ -375,18 +375,18 @@ function TaskDetailModal({ task, onClose }) {
                 </div>
 
                 <div>
-                    <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                    <h4 className="text-base font-semibold text-gray-900 mb-2">
                         Deskripsi
                     </h4>
                     <div className="h-px bg-gray-100 mb-3" />
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <p className="text-base text-gray-600 leading-relaxed">
                         {task.description}
                     </p>
                 </div>
 
                 {task.attachments?.length > 0 && (
                     <div>
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
                             Lampiran Materi
                         </h4>
                         <div className="h-px bg-gray-100 mb-3" />
@@ -430,7 +430,7 @@ function TaskDetailModal({ task, onClose }) {
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                        <p className="text-base font-medium text-gray-900 truncate">
                                             {att.name}
                                         </p>
                                         <p className="text-[11px] text-gray-400">
@@ -458,11 +458,11 @@ function TaskDetailModal({ task, onClose }) {
 
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-semibold text-gray-900">
+                        <h4 className="text-base font-semibold text-gray-900">
                             Jawaban Anda {isSubmitted ? "(1)" : ""}
                         </h4>
                         {isSubmitted && (
-                            <span className="text-xs text-primary-500 font-medium cursor-pointer hover:underline">
+                            <span className="text-sm text-primary-500 font-medium cursor-pointer hover:underline">
                                 Riwayat Pengerjaan
                             </span>
                         )}
@@ -475,7 +475,7 @@ function TaskDetailModal({ task, onClose }) {
                                 PDF
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">
+                                <p className="text-base font-medium text-gray-900 truncate">
                                     {task.submissions?.[0]?.file ||
                                         "Jawaban_Tugas.pdf"}
                                 </p>
@@ -508,18 +508,18 @@ function TaskDetailModal({ task, onClose }) {
                                 onChange={(e) => setAnswerText(e.target.value)}
                                 rows={5}
                                 placeholder="Tuliskan jawaban atau tempelkan link di sini..."
-                                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all resize-none"
+                                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-base outline-none focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-100 transition-all resize-none"
                             />
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setShowTextEditor(false)}
-                                    className="px-4 py-2 text-xs font-medium bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
+                                    className="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition"
                                 >
                                     Batal
                                 </button>
                                 <button
                                     onClick={handleSubmitAnswer}
-                                    className="px-4 py-2 text-xs font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition"
+                                    className="px-4 py-2 text-sm font-semibold bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition"
                                 >
                                     Simpan & Kumpulkan
                                 </button>
@@ -529,7 +529,7 @@ function TaskDetailModal({ task, onClose }) {
                         <div className="space-y-2">
                             <button
                                 onClick={() => {}}
-                                className="w-full py-3 border-2 border-dashed border-primary-200 text-primary-600 rounded-xl text-sm font-semibold hover:bg-primary-50 transition flex items-center justify-center gap-2"
+                                className="w-full py-3 border-2 border-dashed border-primary-200 text-primary-600 rounded-xl text-base font-semibold hover:bg-primary-50 transition flex items-center justify-center gap-2"
                             >
                                 <svg
                                     className="w-4 h-4"
@@ -548,7 +548,7 @@ function TaskDetailModal({ task, onClose }) {
                             </button>
                             <button
                                 onClick={() => setShowTextEditor(true)}
-                                className="w-full py-3 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                                className="w-full py-3 border border-gray-200 text-gray-700 rounded-xl text-base font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2"
                             >
                                 <svg
                                     className="w-4 h-4"
@@ -572,14 +572,14 @@ function TaskDetailModal({ task, onClose }) {
                 <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+                        className="px-4 py-2 text-base  transition bg-red-500 text-white hover:bg-red-600 rounded-xl"
                     >
                         Tutup
                     </button>
                     <button
                         onClick={handleSubmitAnswer}
                         disabled={isSubmitted}
-                        className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition flex items-center gap-2 ${isSubmitted ? "bg-green-100 text-green-600 cursor-default" : "bg-primary-500 text-white hover:bg-primary-600"}`}
+                        className={`px-5 py-2.5 text-base font-semibold rounded-xl transition flex items-center gap-2 ${isSubmitted ? "bg-green-100 text-green-600 cursor-default" : "bg-primary-500 text-white hover:bg-primary-600"}`}
                     >
                         {isSubmitted ? (
                             <>
