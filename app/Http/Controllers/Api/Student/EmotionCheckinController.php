@@ -25,11 +25,22 @@ class EmotionCheckinController extends Controller
             return response()->json(['message' => 'Student not found.'], 404);
         }
 
-        $cacheKey = "student_{$student->id}_checkin_history";
-
-        $history = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addDay(), function () use ($student) {
-            return $student->emotionCheckins()->latest()->take(5)->get()->values()->all();
-        });
+        $history = $student->emotionCheckins()
+            ->latest('created_at')
+            ->take(5)
+            ->get([
+                'id',
+                'school_id',
+                'student_id',
+                'mood',
+                'current_condition',
+                'experienced_event',
+                'story',
+                'ai_analysis_result',
+                'created_at',
+                'updated_at',
+            ])
+            ->values();
 
         return response()->json(['data' => $history]);
     }

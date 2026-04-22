@@ -572,7 +572,7 @@ function TaskDetailModal({ task, onClose }) {
                 <div className="-mx-6 mt-5 px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-900 transition"
+                        className="px-4 py-2 text-base  transition bg-red-500 text-white hover:bg-red-600 rounded-xl"
                     >
                         Tutup
                     </button>
